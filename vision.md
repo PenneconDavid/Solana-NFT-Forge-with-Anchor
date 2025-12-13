@@ -15,12 +15,12 @@
     - Master Edition PDA: `9UwqooyJSSWtRAh5q5tsxBEXZaLg2k8URiVb9MrnDUEa`
 
 ### What remains (and what we intentionally deferred)
-**Still to do (core portfolio demo path)**
+**Still to do (core portfolio path)**
 - **Frontend transaction sending (Option 1)**: wire `/mint/[slug]` to send the real `forge_asset` transaction via wallet adapter, then display mint + signature.
-- **Devnet deployment demo**: deploy + run a mint on devnet and document the explorer links in README.
 - **Testing**: turn the existing integration/e2e scaffolding into at least one real “happy path” and one negative test.
 
 **Deferred / skipped on purpose (not required for the proven localnet mint)**
+- **Devnet walkthrough/demo**: desired later; plan to deploy to devnet and capture a public walkthrough when ready.
 - **Editions + semi-fungibles**: minting paths for `OutputKind::Edition` / `OutputKind::SemiFungible` beyond OneOfOne.
 - **Collection verification**: Token Metadata “verify collection” CPIs and authority flows.
 - **Freeze/thaw workflows**: full freeze authority UX and admin tooling.
@@ -418,14 +418,14 @@ Phase B Status (Updated 2025-12-01) - ✅ **COMPLETE - READY FOR PHASE C**
 - ⚠️ **Frontend Integration**: 80% complete - transaction path exists; reliability/UX hardening + full ingredient remainingAccounts support still needed
 - ✅ **Asset Minting (OneOfOne)**: complete - Token Metadata CPI implemented and proven on localnet (CLI proof); editions/semi-fungibles still pending
 - ⚠️ **Testing**: 20% complete - structure exists, tests not implemented
-- ⚠️ **Deployment**: 20% complete - localnet deploy+mint proven; devnet demo still pending
+- ⚠️ **Deployment**: 20% complete - localnet deploy+mint proven; devnet rollout deferred (walkthrough planned later)
 
 **Critical Path to Portfolio-Ready (updated 2025-12-13)**:
 1. ✅ Localnet validator + build + deploy pipeline works on Windows
 2. ✅ Initialize forge config + create an active recipe on localnet
 3. ✅ Run a real `forge_asset` mint end-to-end on localnet (CLI first for clean logs)
 4. ⏳ Wire the frontend mint page to send the real transaction and display results
-5. ⏳ Repeat on devnet and document the demo
+5. ⏳ Repeat on devnet (walkthrough/demo deferred until later)
 
 **Estimated Time to Portfolio-Ready**: 3-5 days of focused work
 
