@@ -8,68 +8,90 @@ export default function HomePage() {
   const { connected } = useWallet();
 
   return (
-    <div className="min-h-screen text-amber-50">
+    <div className="min-h-screen text-[var(--text)]">
       <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 text-amber-300 drop-shadow-sm">Solana NFT Forge</h1>
-          <p className="text-xl text-amber-100/80 mb-8">
-            Create and forge NFTs using recipe-based ingredients.
-          </p>
-          <div className="flex justify-center gap-4">
-            <WalletMultiButton />
+        <div className="relative overflow-hidden neu-ghost px-8 py-12 max-w-6xl mx-auto">
+          <div className="absolute inset-0 opacity-50 blur-3xl bg-gradient-to-r from-[rgba(90,196,141,0.12)] via-[rgba(73,192,215,0.12)] to-[rgba(255,127,111,0.12)] pointer-events-none" />
+          <div className="relative text-center space-y-5">
+            <p className="text-sm uppercase tracking-[0.35em] text-[var(--text-muted)]">Solana NFT Forge</p>
+            <h1 className="text-5xl md:text-6xl font-semibold leading-tight">
+              Craft on-chain assets with <span className="text-[var(--accent-secondary)]">recipes</span> and{" "}
+              <span className="text-[var(--accent-primary)]">ingredients</span>.
+            </h1>
+            <p className="text-lg text-[var(--text-muted)] max-w-3xl mx-auto">
+              Neumorphic UI, nature-inspired accents, and a streamlined flow for creators and forgers.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 items-center">
+              <WalletMultiButton className="!bg-[var(--accent-primary)] !text-[#0b0f0b] !font-semibold !px-5 !py-3 !rounded-xl btn-glow" />
+              <Link
+                href="/mint/example"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[rgba(255,255,255,0.08)] text-[var(--accent-tertiary)] hover:text-[var(--accent-secondary)] transition"
+              >
+                Explore mint flow →
+              </Link>
+            </div>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mt-12">
-          <Link
-            href="/creator/recipes"
-            className="bg-[#2b1b10]/70 backdrop-blur border border-amber-900/60 rounded-lg p-8 shadow-[0_10px_30px_rgba(0,0,0,0.35)] hover:border-amber-600 transition-colors"
-          >
-            <h2 className="text-2xl font-semibold text-amber-200 mb-4">Creator Dashboard</h2>
-            <p className="text-amber-100/80 mb-4">
-              Create and manage recipes for forging NFTs. Set ingredient requirements, supply caps, and metadata.
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-14">
+          <Link href="/creator/recipes" className="neu-panel p-7 hover:scale-[1.01] transition-transform">
+            <div className="text-sm text-[var(--accent-tertiary)] mb-2">For creators</div>
+            <h2 className="text-2xl font-semibold mb-3">Creator Dashboard</h2>
+            <p className="text-[var(--text-muted)] mb-4">
+              Define recipes, set supply caps, and configure metadata. Manage your forging logic in one place.
             </p>
-            <div className="text-amber-300 font-semibold">Go to Creator →</div>
+            <div className="text-[var(--accent-secondary)] font-semibold">Go to Creator →</div>
           </Link>
 
-          <div className="bg-[#2b1b10]/70 backdrop-blur border border-amber-900/60 rounded-lg p-8 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
-            <h2 className="text-2xl font-semibold text-amber-200 mb-4">Forge Assets</h2>
-            <p className="text-amber-100/80 mb-4">
-              Use recipes to forge new NFTs by meeting ingredient requirements. Connect your wallet and start forging.
+          <div className="neu-panel p-7">
+            <div className="text-sm text-[var(--accent-tertiary)] mb-2">For forgers</div>
+            <h2 className="text-2xl font-semibold mb-3">Forge Assets</h2>
+            <p className="text-[var(--text-muted)] mb-4">
+              Use recipes to forge new NFTs once you meet ingredient requirements. Wallet-ready and fast.
             </p>
             {connected ? (
-              <Link href="/mint/example" className="inline-block text-amber-300 font-semibold hover:text-amber-100">
-                Browse Recipes →
+              <Link href="/mint/example" className="inline-flex items-center gap-2 text-[var(--accent-primary)] font-semibold hover:text-[var(--accent-secondary)]">
+                Browse recipes →
               </Link>
             ) : (
-              <p className="text-amber-200/70 text-sm">Connect wallet to forge</p>
+              <p className="text-[var(--text-muted)] text-sm">Connect wallet to forge.</p>
             )}
+          </div>
+
+          <div className="neu-panel p-7">
+            <div className="text-sm text-[var(--accent-tertiary)] mb-2">Cluster-aware</div>
+            <h2 className="text-2xl font-semibold mb-3">Localnet / Devnet</h2>
+            <p className="text-[var(--text-muted)] mb-4">
+              Built for localnet iteration and devnet readiness. Frontend surfaces validator prereqs and recipe status.
+            </p>
+            <div className="text-[var(--accent-primary)] font-semibold">Docs coming →</div>
           </div>
         </div>
 
-        <div className="mt-16 bg-[#2b1b10]/70 backdrop-blur border border-amber-900/60 rounded-lg shadow-[0_10px_30px_rgba(0,0,0,0.35)] p-8 max-w-5xl mx-auto">
-          <h2 className="text-2xl font-semibold text-amber-200 mb-4">How It Works</h2>
-          <div className="grid md:grid-cols-3 gap-6 text-amber-100/80">
-            <div className="bg-[#1d120b] border border-amber-900/60 rounded p-4">
-              <div className="text-3xl mb-2">1️⃣</div>
-              <h3 className="font-semibold mb-2 text-amber-200">Create Recipes</h3>
-              <p className="text-sm">
-                Creators define recipes with ingredient requirements and output specifications.
-              </p>
-            </div>
-            <div className="bg-[#1d120b] border border-amber-900/60 rounded p-4">
-              <div className="text-3xl mb-2">2️⃣</div>
-              <h3 className="font-semibold mb-2 text-amber-200">Meet Requirements</h3>
-              <p className="text-sm">
-                Users collect required tokens, NFTs, or allowlist proofs to meet recipe ingredients.
-              </p>
-            </div>
-            <div className="bg-[#1d120b] border border-amber-900/60 rounded p-4">
-              <div className="text-3xl mb-2">3️⃣</div>
-              <h3 className="font-semibold mb-2 text-amber-200">Forge Assets</h3>
-              <p className="text-sm">
-                Submit ingredients to forge new NFTs according to the recipe specifications.
-              </p>
+        <div className="mt-16 max-w-6xl mx-auto">
+          <div className="neu-panel p-8">
+            <div className="flex flex-wrap gap-6 items-start">
+              <div className="neu-ghost p-4 rounded-xl border border-[rgba(255,255,255,0.06)]">
+                <div className="text-3xl mb-2">🌿</div>
+                <h3 className="font-semibold text-lg mb-1">Create Recipes</h3>
+                <p className="text-sm text-[var(--text-muted)] max-w-xs">
+                  Define ingredient constraints, outputs, and supply caps. Anchor program enforces rules.
+                </p>
+              </div>
+              <div className="neu-ghost p-4 rounded-xl border border-[rgba(255,255,255,0.06)]">
+                <div className="text-3xl mb-2">🔥</div>
+                <h3 className="font-semibold text-lg mb-1">Meet Requirements</h3>
+                <p className="text-sm text-[var(--text-muted)] max-w-xs">
+                  Users collect the tokens, NFTs, or allowlist proofs required by each recipe.
+                </p>
+              </div>
+              <div className="neu-ghost p-4 rounded-xl border border-[rgba(255,255,255,0.06)]">
+                <div className="text-3xl mb-2">🛠️</div>
+                <h3 className="font-semibold text-lg mb-1">Forge Assets</h3>
+                <p className="text-sm text-[var(--text-muted)] max-w-xs">
+                  Submit ingredients, mint, and attach metadata via CPI to Metaplex Token Metadata.
+                </p>
+              </div>
             </div>
           </div>
         </div>

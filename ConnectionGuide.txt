@@ -3,6 +3,7 @@ Solana-NFT-Forge-with-Anchor Connection Guide
 
 Program Information
 - Program ID (localnet): BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
+- Program ID (devnet): BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN (not yet deployed; mint disabled for Vercel until devnet deploy)
 - Metaplex Token Metadata Program: metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s
 
 Local Development
@@ -22,6 +23,14 @@ External Services
 - Pinata API base URL: https://api.pinata.cloud
 - Pinata public gateway (example): https://gateway.pinata.cloud
 - Pinata JWT: Set via PINATA_JWT environment variable
+
+Vercel Deployment (planned)
+- Frontend URL: https://<pending>.vercel.app (set after deployment)
+- Env (public): NEXT_PUBLIC_CLUSTER=devnet
+- Env (public): NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+- Env (public): NEXT_PUBLIC_FORGE_PROGRAM_ID=BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
+- Env (public): NEXT_PUBLIC_FORGE_AUTHORITY=Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA
+- Note: Minting disabled on Vercel until devnet program is actually deployed.
 
 IDL Locations
 - Generated IDL: target/idl/forge.json

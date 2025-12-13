@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/navigation";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 export default function NewRecipePage() {
-  const { publicKey, connected } = useWallet();
-  const { connection } = useConnection();
+  const { connected } = useWallet();
   const router = useRouter();
   const { setVisible } = useWalletModal();
   const [formData, setFormData] = useState({
@@ -48,9 +46,10 @@ export default function NewRecipePage() {
       
       // For now, just show success
       router.push("/creator/recipes");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating recipe:", error);
-      alert(`Error: ${error.message}`);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      alert(`Error: ${message}`);
     } finally {
       setSubmitting(false);
     }

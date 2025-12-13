@@ -1,34 +1,71 @@
 @import "tailwindcss";
 
-/* Global “Rust forge” palette */
+/* Global theme: forest night + nature accents + soft neumorphism */
 :root {
-  --background: #130b06;
-  --background-strong: #2b1b10;
-  --foreground: #fef3c7;
-  --accent-amber: #f59e0b;
-  --accent-ember: #b45309;
-  --muted: rgba(254, 243, 199, 0.8);
+  --bg: #0f1410;
+  --bg-strong: #0b0f0b;
+  --surface: #18201b;
+  --surface-soft: #1d2721;
+  --text: #f7f1e3;
+  --text-muted: #cfd6c9;
+  --accent-primary: #5ac48d; /* moss/fern */
+  --accent-secondary: #ff7f6f; /* sunrise coral */
+  --accent-tertiary: #49c0d7; /* sky teal */
+  --shadow-strong: 16px 18px 40px rgba(0, 0, 0, 0.55);
+  --shadow-soft: -8px -8px 20px rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.06);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: radial-gradient(circle at 20% 20%, rgba(181, 83, 9, 0.12), transparent 25%),
-    radial-gradient(circle at 80% 10%, rgba(245, 158, 11, 0.08), transparent 22%),
-    linear-gradient(180deg, #1f1208 0%, #2a1a0f 40%, #130b06 100%);
-  color: var(--foreground);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(90, 196, 141, 0.12), transparent 25%),
+    radial-gradient(circle at 80% 10%, rgba(73, 192, 215, 0.1), transparent 22%),
+    radial-gradient(circle at 60% 70%, rgba(255, 127, 111, 0.08), transparent 28%),
+    linear-gradient(180deg, #101711 0%, #0c120d 40%, #090d09 100%);
+  color: var(--text);
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 a {
-  color: var(--accent-amber);
+  color: var(--accent-tertiary);
+  transition: color 150ms ease, opacity 150ms ease;
 }
 
 a:hover {
-  color: var(--foreground);
+  color: var(--accent-secondary);
+}
+
+.neu-panel {
+  background: var(--surface);
+  box-shadow: var(--shadow-strong), var(--shadow-soft);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.neu-ghost {
+  background: linear-gradient(145deg, rgba(24, 32, 27, 0.8), rgba(29, 39, 33, 0.6));
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+}
+
+.btn-glow {
+  transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+  box-shadow: 0 12px 30px rgba(90, 196, 141, 0.28);
+}
+
+.btn-glow:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(90, 196, 141, 0.38);
+}
+
+.btn-glow:active {
+  transform: translateY(0);
 }

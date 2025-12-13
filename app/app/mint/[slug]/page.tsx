@@ -134,11 +134,11 @@ export default function MintPage() {
         const [forgeConfigPDA] = forgeClient.deriveForgeConfigPDA(forgeAuthority);
         
         try {
-          const config = await forgeClient.fetchForgeConfig(forgeAuthority);
+          const config = (await forgeClient.fetchForgeConfig(forgeAuthority)) as ForgeConfigType;
           setForgeConfig(config);
           
           // Fetch recipe
-          const recipeData = await forgeClient.fetchRecipe(forgeConfigPDA, slug, 1);
+          const recipeData = (await forgeClient.fetchRecipe(forgeConfigPDA, slug, 1)) as Recipe;
           setRecipe(recipeData);
         } catch (err) {
           console.warn("Could not fetch recipe:", err);
@@ -179,10 +179,10 @@ export default function MintPage() {
       const forgeAuthority = new PublicKey(authorityStr);
 
       // Build ingredient hash chunks
-      const ingredientChunks = client.buildIngredientHashChunks(
-        recipe.ingredientConstraints || [],
-        publicKey
-      );
+      const constraintsForHash = (recipe.ingredientConstraints || []) as Parameters<
+        typeof client.buildIngredientHashChunks
+      >[0];
+      const ingredientChunks = client.buildIngredientHashChunks(constraintsForHash, publicKey);
 
       // Compute input hash
       const inputHash = await client.computeInputHash(ingredientChunks);
@@ -235,74 +235,86 @@ export default function MintPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <p>Loading recipe...</p>
+      <div className="container mx-auto px-4 py-10 max-w-2xl text-[var(--text)]">
+        <div className="neu-panel p-6">
+          <p className="text-[var(--text-muted)]">Loading recipe...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1f1208] via-[#2a1a0f] to-[#130b06] text-amber-50">
-      <div className="container mx-auto px-4 py-10 max-w-2xl">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-amber-300 drop-shadow-sm">Forge Asset</h1>
-          <p className="text-sm text-amber-200/70 mt-1">Rust-forge inspired: warm metals, dark hearth.</p>
+    <div className="min-h-screen text-[var(--text)]">
+      <div className="container mx-auto px-4 py-10 max-w-2xl space-y-6">
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">Mint</p>
+          <h1 className="text-3xl font-semibold">Forge Asset</h1>
+          <p className="text-sm text-[var(--text-muted)]">
+            Neumorphic surfaces with nature accents. Ensure wallet + ingredients satisfy the recipe.
+          </p>
         </div>
 
-        <div className="bg-[#2b1b10]/70 backdrop-blur border border-amber-900/60 rounded-lg p-6 mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
-          <h2 className="text-xl font-semibold text-amber-200 mb-3">Recipe: {slug}</h2>
-          <p className="text-amber-100/80 mb-4">
-            Connect your wallet and ensure you meet all ingredient requirements to forge this asset.
-          </p>
+        <div className="neu-panel p-6">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-xl font-semibold">Recipe: {slug}</h2>
+              <p className="text-sm text-[var(--text-muted)]">
+                Connect your wallet and ensure you meet all ingredient requirements to forge this asset.
+              </p>
+            </div>
+            <span className="px-3 py-1 text-xs rounded-full border border-[rgba(255,255,255,0.1)] text-[var(--accent-tertiary)]">
+              Cluster-aware
+            </span>
+          </div>
 
           {!connected ? (
             <button
               onClick={() => setVisible(true)}
-              className="w-full bg-blue-600 text-white px-4 py-3 rounded hover:bg-blue-700"
+              className="w-full bg-[var(--accent-primary)] text-[#0b0f0b] px-4 py-3 rounded-xl font-semibold btn-glow"
             >
               Connect Wallet
             </button>
           ) : (
             <div className="space-y-4">
-              <div className="bg-[#1d120b] border border-amber-900/60 p-4 rounded">
-                <p className="text-sm text-amber-100/80 mb-2">Connected Wallet:</p>
-                <p className="font-mono text-xs text-amber-200 break-all">{publicKey?.toString()}</p>
+              <div className="neu-ghost p-4">
+                <p className="text-sm text-[var(--text-muted)] mb-2">Connected Wallet:</p>
+                <p className="font-mono text-xs text-[var(--text)] break-all">{publicKey?.toString()}</p>
               </div>
 
               {!anchorWallet && (
-                <div className="bg-amber-900/30 border border-amber-700 p-4 rounded">
-                  <p className="text-sm text-amber-100">
+                <div className="neu-ghost p-4 border border-[rgba(255,127,111,0.35)]">
+                  <p className="text-sm text-[var(--text)]">
                     Wallet adapter is not ready yet. If this persists, refresh the page and reconnect.
                   </p>
                 </div>
               )}
 
               {error && (
-                <div className="bg-red-900/30 border border-red-700 p-4 rounded">
-                  <p className="text-sm text-red-100">{error}</p>
+                <div className="neu-ghost p-4 border border-[rgba(255,127,111,0.45)]">
+                  <p className="text-sm text-[var(--accent-secondary)]">{error}</p>
                 </div>
               )}
 
               {success && (
-                <div className="bg-emerald-900/30 border border-emerald-700 p-4 rounded">
-                  <p className="text-sm text-emerald-100 whitespace-pre-wrap">{success}</p>
+                <div className="neu-ghost p-4 border border-[rgba(90,196,141,0.4)]">
+                  <p className="text-sm text-[var(--accent-primary)] whitespace-pre-wrap">{success}</p>
                 </div>
               )}
 
               {recipe && (
-                <div className="bg-[#1d120b] border border-amber-900/60 p-4 rounded">
-                  <p className="text-sm font-semibold text-amber-200 mb-2">Recipe Details:</p>
-                  <p className="text-xs text-amber-100/80">
+                <div className="neu-ghost p-4">
+                  <p className="text-sm font-semibold text-[var(--text)] mb-2">Recipe Details:</p>
+                  <p className="text-xs text-[var(--text-muted)]">
                     Status: {recipe.status?.active ? "active" : recipe.status?.paused ? "paused" : JSON.stringify(recipe.status)}
                   </p>
-                  <p className="text-xs text-amber-100/80">Minted: {recipe.minted?.toString() || "0"}</p>
+                  <p className="text-xs text-[var(--text-muted)]">Minted: {recipe.minted?.toString() || "0"}</p>
                   {recipe.supplyCap && (
-                    <p className="text-xs text-amber-100/80">Supply Cap: {recipe.supplyCap.toString()}</p>
+                    <p className="text-xs text-[var(--text-muted)]">Supply Cap: {recipe.supplyCap.toString()}</p>
                   )}
                   {recipe.ingredientConstraints && recipe.ingredientConstraints.length > 0 && (
                     <div className="mt-2">
-                      <p className="text-xs font-semibold text-amber-200">Ingredient Constraints:</p>
-                      <ul className="text-xs text-amber-100/80 list-disc list-inside">
+                      <p className="text-xs font-semibold text-[var(--text)]">Ingredient Constraints:</p>
+                      <ul className="text-xs text-[var(--text-muted)] list-disc list-inside">
                         {recipe.ingredientConstraints.map((c: Constraint, i: number) => (
                           <li key={i}>
                             {c.Signer && `Signer: ${c.Signer.authority}`}
@@ -329,54 +341,57 @@ export default function MintPage() {
                 </div>
               )}
 
-              <div className="bg-amber-900/30 border border-amber-700 p-4 rounded">
-                <p className="text-sm text-amber-100">
-                  (Notice) Ingredient verification required. Ensure you have all required tokens/NFTs/allowlist proofs.
-                  {recipe && !recipe.ingredientConstraints?.length && " This recipe has no ingredient constraints."}
-                </p>
-              </div>
-
               <button
                 onClick={handleForge}
                 disabled={forging || !recipe || !forgeConfig}
-                className="w-full bg-amber-600 text-amber-50 px-4 py-3 rounded hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
+                className="w-full bg-[var(--accent-primary)] text-[#0b0f0b] px-4 py-3 rounded-xl font-semibold btn-glow disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {forging ? "Forging..." : "Forge Asset"}
               </button>
+
+              <div className="neu-ghost p-4 border border-[rgba(255,255,255,0.06)]">
+                <p className="text-sm text-[var(--text-muted)]">
+                  Ingredient verification required. Ensure you have all required tokens/NFTs/allowlist proofs.
+                  {recipe && !recipe.ingredientConstraints?.length && " This recipe has no ingredient constraints."}
+                </p>
+              </div>
             </div>
           )}
         </div>
       </div>
 
       <div className="container mx-auto px-4 pb-10 max-w-2xl">
-        <div className="bg-[#2b1b10]/70 backdrop-blur border border-amber-900/60 rounded-lg p-6 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
-          <h2 className="text-xl font-semibold text-amber-200 mb-4">Ingredient Requirements</h2>
-              {recipe && recipe.ingredientConstraints && recipe.ingredientConstraints.length > 0 ? (
+        <div className="neu-panel p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Ingredient Requirements</h2>
+            <span className="text-xs text-[var(--text-muted)]">Resolve before submit</span>
+          </div>
+          {recipe && recipe.ingredientConstraints && recipe.ingredientConstraints.length > 0 ? (
             <div className="space-y-2">
               {recipe.ingredientConstraints.map((constraint: Constraint, i: number) => (
-                <div key={i} className="bg-[#1d120b] border border-amber-900/60 p-3 rounded">
+                <div key={i} className="neu-ghost p-3 border border-[rgba(255,255,255,0.06)]">
                   {constraint.Signer && (
-                    <p className="text-sm text-amber-100">
+                    <p className="text-sm text-[var(--text)]">
                       <strong>Signer:</strong> {constraint.Signer.authority}
                     </p>
                   )}
                   {constraint.TokenMint && (
-                    <p className="text-sm text-amber-100">
+                    <p className="text-sm text-[var(--text)]">
                       <strong>Token:</strong> {constraint.TokenMint.mint} (Amount: {constraint.TokenMint.amount})
                     </p>
                   )}
                   {constraint.CollectionNft && (
-                    <p className="text-sm text-amber-100">
+                    <p className="text-sm text-[var(--text)]">
                       <strong>Collection NFT:</strong> {constraint.CollectionNft.collectionMint}
                     </p>
                   )}
                   {constraint.Allowlist && (
-                    <p className="text-sm text-amber-100">
+                    <p className="text-sm text-[var(--text)]">
                       <strong>Allowlist:</strong> Merkle proof required
                     </p>
                   )}
                   {constraint.CustomSeeds && (
-                    <p className="text-sm text-amber-100">
+                    <p className="text-sm text-[var(--text)]">
                       <strong>Custom Seeds:</strong>{" "}
                       {(() => {
                         const seeds = constraint.CustomSeeds?.seeds;
@@ -392,11 +407,11 @@ export default function MintPage() {
               ))}
             </div>
           ) : (
-            <p className="text-amber-100/80">
+            <p className="text-[var(--text-muted)]">
               {recipe ? "This recipe has no ingredient constraints." : "Loading recipe requirements..."}
             </p>
           )}
-          <p className="text-sm text-amber-200/70 mt-4">
+          <p className="text-sm text-[var(--text-muted)] mt-4">
             Note: If this fails with account-not-found, ensure you deployed + ran `npm run init-forge` and
             created/activated the recipe on the same cluster.
           </p>

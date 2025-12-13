@@ -6,7 +6,7 @@ import { Umi, createUmi } from "@metaplex-foundation/umi";
 // import { walletAdapterIdentity } from "@metaplex-foundation/umi-bundle-defaults";
 
 // IDL type - will be loaded dynamically
-type ForgeIDL = anchor.Idl;
+type ForgeIDL = anchor.Idl & { address?: string };
 
 export interface ForgeClientConfig {
   connection: Connection;
@@ -48,14 +48,14 @@ export class ForgeClient {
     );
     // Anchor 0.32 Program constructor signature is (idl, provider, coder?).
     // The program id comes from `idl.address`.
-    if (!idl || !(idl as any).instructions) {
+    if (!idl || !idl.instructions) {
       throw new Error(
         "ForgeClient requires a valid Anchor IDL. In the browser, ensure /idl/forge.json is available (copy target/idl/forge.json to app/public/idl/forge.json)."
       );
     }
 
-    const programIdl = idl as anchor.Idl;
-    const idlAddress = (programIdl as any).address as string | undefined;
+    const programIdl = idl as ForgeIDL;
+    const idlAddress = programIdl.address;
     if (idlAddress) {
       const idlProgramId = new PublicKey(idlAddress);
       if (!idlProgramId.equals(this.programId)) {
@@ -66,7 +66,6 @@ export class ForgeClient {
       }
     }
 
-    // @ts-ignore - Anchor Program constructor type inference issue
     this.program = new anchor.Program(programIdl, provider);
 
     // Initialize UMI
@@ -122,8 +121,10 @@ export class ForgeClient {
    */
   async fetchForgeConfig(authority: PublicKey) {
     const [forgeConfigPDA] = this.deriveForgeConfigPDA(authority);
-    // Type assertion needed until IDL types are properly loaded
-    return await (this.program.account as any).forgeConfig.fetch(forgeConfigPDA);
+    const accounts = this.program.account as unknown as {
+      forgeConfig: { fetch: (pk: PublicKey) => Promise<unknown> };
+    };
+    return await accounts.forgeConfig.fetch(forgeConfigPDA);
   }
 
   /**
@@ -131,16 +132,26 @@ export class ForgeClient {
    */
   async fetchRecipe(forgeConfig: PublicKey, slug: string, version: number) {
     const [recipePDA] = this.deriveRecipePDA(forgeConfig, slug, version);
-    // Type assertion needed until IDL types are properly loaded
-    return await (this.program.account as any).recipe.fetch(recipePDA);
+    const accounts = this.program.account as unknown as {
+      recipe: { fetch: (pk: PublicKey) => Promise<unknown> };
+    };
+    return await accounts.recipe.fetch(recipePDA);
   }
 
   /**
    * Fetches all recipes for a forge config
    */
   async fetchAllRecipes(forgeConfig: PublicKey) {
-    // Type assertion needed until IDL types are properly loaded
-    return await (this.program.account as any).recipe.all([
+    const accounts = this.program.account as unknown as {
+      recipe: {
+        all: (
+          filters: {
+            memcmp: { offset: number; bytes: string };
+          }[]
+        ) => Promise<{ publicKey: PublicKey; account: unknown }[]>;
+      };
+    };
+    return await accounts.recipe.all([
       {
         memcmp: {
           offset: 8, // Skip discriminator
@@ -156,8 +167,10 @@ export class ForgeClient {
   async fetchRecipeUse(recipe: PublicKey, inputHash: Uint8Array) {
     const [recipeUsePDA] = this.deriveRecipeUsePDA(recipe, inputHash);
     try {
-      // Type assertion needed until IDL types are properly loaded
-      return await (this.program.account as any).recipeUse.fetch(recipeUsePDA);
+      const accounts = this.program.account as unknown as {
+        recipeUse: { fetch: (pk: PublicKey) => Promise<unknown> };
+      };
+      return await accounts.recipeUse.fetch(recipeUsePDA);
     } catch {
       return null; // RecipeUse may not exist yet
     }
@@ -171,9 +184,6 @@ export class ForgeClient {
    * This is SHA256 of concatenated inputs
    */
   async computeInputHash(ingredientChunks: Uint8Array[]): Promise<Uint8Array> {
-    // Use Web Crypto API for browser compatibility
-    const encoder = new TextEncoder();
-    
     if (ingredientChunks.length === 0) {
       // Empty hash: hashv(&[&[]])
       const emptyData = new Uint8Array(0);
@@ -200,28 +210,35 @@ export class ForgeClient {
    * Matches on-chain logic in forge_asset instruction
    */
   buildIngredientHashChunks(
-    constraints: any[],
-    forgerPubkey: PublicKey,
-    remainingAccounts: any[] = []
+    constraints: Array<
+      | { Signer: { authority: string } }
+      | { CustomSeeds: { seeds: Uint8Array | ArrayBuffer | number[] } }
+      | { TokenMint: { mint: string; amount: number | string | bigint } }
+      | { CollectionNft: { collectionMint: string } }
+      | { Allowlist: { merkleRoot: Uint8Array | ArrayBuffer | number[] } }
+    >,
+    _forgerPubkey: PublicKey
   ): Uint8Array[] {
     const chunks: Uint8Array[] = [];
+    // Avoid unused param lint; reserved for future per-forger hashing adjustments
+    void _forgerPubkey;
 
     for (const constraint of constraints) {
-      if (constraint.Signer) {
+      if ("Signer" in constraint) {
         // Variant tag 0 + authority pubkey (32 bytes)
         const authorityPubkey = new PublicKey(constraint.Signer.authority);
         const chunk = new Uint8Array(33);
         chunk[0] = 0;
         chunk.set(authorityPubkey.toBytes(), 1);
         chunks.push(chunk);
-      } else if (constraint.CustomSeeds) {
+      } else if ("CustomSeeds" in constraint) {
         // Variant tag 1 + seed bytes
         const seedBytes = new Uint8Array(constraint.CustomSeeds.seeds);
         const chunk = new Uint8Array(1 + seedBytes.length);
         chunk[0] = 1;
         chunk.set(seedBytes, 1);
         chunks.push(chunk);
-      } else if (constraint.TokenMint) {
+      } else if ("TokenMint" in constraint) {
         // Variant tag 2 + mint (32 bytes) + amount (8 bytes)
         const mint = new PublicKey(constraint.TokenMint.mint);
         const amount = BigInt(constraint.TokenMint.amount);
@@ -234,14 +251,14 @@ export class ForgeClient {
         view.setBigUint64(0, amount, true); // true = little endian
         chunk.set(amountBytes, 33);
         chunks.push(chunk);
-      } else if (constraint.CollectionNft) {
+      } else if ("CollectionNft" in constraint) {
         // Variant tag 3 + collection_mint (32 bytes)
         const collectionMint = new PublicKey(constraint.CollectionNft.collectionMint);
         const chunk = new Uint8Array(33);
         chunk[0] = 3;
         chunk.set(collectionMint.toBytes(), 1);
         chunks.push(chunk);
-      } else if (constraint.Allowlist) {
+      } else if ("Allowlist" in constraint) {
         // Variant tag 4 + merkle_root (32 bytes)
         const merkleRoot = new Uint8Array(constraint.Allowlist.merkleRoot);
         const chunk = new Uint8Array(33);

@@ -3,43 +3,62 @@
 import { useState, useEffect } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
-import { ForgeClient, createForgeClient } from "@/lib/forgeClient";
+import { createForgeClient } from "@/lib/forgeClient";
 import Link from "next/link";
+
+type RecipeSummary = {
+  slug: string;
+  version: number;
+  status?: unknown;
+  minted?: unknown;
+  supplyCap?: unknown;
+  pubkey: PublicKey;
+};
 
 export default function CreatorRecipesPage() {
   const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
-  const [forgeClient, setForgeClient] = useState<ForgeClient | null>(null);
-  const [recipes, setRecipes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
+  const [loading, setLoading] = useState<boolean>(!!connected);
 
   useEffect(() => {
-    if (!connected || !publicKey) {
-      setLoading(false);
-      return;
-    }
+    if (!connected || !publicKey) return;
 
-    const programId = new PublicKey(
-      process.env.NEXT_PUBLIC_FORGE_PROGRAM_ID || "Fg6PaFpoGXkYsidMpWxTWqk1Rd9j9DJ6mM7a34P6vhi1"
-    );
+    let cancelled = false;
 
-    createForgeClient(connection, programId)
-      .then((client) => {
-        setForgeClient(client);
-        // Fetch forge config and recipes
-        return client.fetchForgeConfig(publicKey).then((config) => {
-          const [forgeConfigPDA] = client.deriveForgeConfigPDA(publicKey);
-          return client.fetchAllRecipes(forgeConfigPDA);
-        });
-      })
-        .then((recipeAccounts) => {
-          setRecipes(recipeAccounts.map((acc: any) => ({ ...acc.account, pubkey: acc.publicKey })));
-          setLoading(false);
-        })
-      .catch((error) => {
-        console.error("Error fetching recipes:", error);
-        setLoading(false);
-      });
+    const load = async () => {
+      setLoading(true);
+      try {
+        const programId = new PublicKey(
+          process.env.NEXT_PUBLIC_FORGE_PROGRAM_ID || "Fg6PaFpoGXkYsidMpWxTWqk1Rd9j9DJ6mM7a34P6vhi1"
+        );
+
+        const client = await createForgeClient(connection, programId);
+        const [forgeConfigPDA] = client.deriveForgeConfigPDA(publicKey);
+        const recipeAccounts = await client.fetchAllRecipes(forgeConfigPDA);
+        if (cancelled) return;
+        setRecipes(
+          recipeAccounts.map((acc) => {
+            const account = acc.account as Record<string, unknown>;
+            return {
+              ...(account as object),
+              pubkey: acc.publicKey,
+            } as RecipeSummary;
+          })
+        );
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Error fetching recipes:", error);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [connected, publicKey, connection]);
 
   if (!connected) {
@@ -96,7 +115,7 @@ export default function CreatorRecipesPage() {
                 Status: {JSON.stringify(recipe.status)}
               </p>
               <p className="text-sm text-gray-600">
-                Minted: {recipe.minted} / {recipe.supplyCap || "∞"}
+                Minted: {String(recipe.minted ?? "0")} / {String(recipe.supplyCap ?? "∞")}
               </p>
             </Link>
           ))}
