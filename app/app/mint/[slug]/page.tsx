@@ -40,6 +40,32 @@ function deriveMasterEditionPda(mint: PublicKey): PublicKey {
   return edition;
 }
 
+type Constraint = {
+  Signer?: { authority: string };
+  TokenMint?: { mint: string; amount: number };
+  CollectionNft?: { collectionMint: string };
+  Allowlist?: { merkleRoot: ArrayBuffer | Uint8Array | number[] };
+  CustomSeeds?: { seeds: ArrayBuffer | Uint8Array | number[] };
+};
+
+type Recipe = {
+  slug: string;
+  version: number;
+  status?: { active?: boolean; paused?: boolean };
+  minted?: { toString(): string } | number;
+  supplyCap?: { toString(): string };
+  ingredientConstraints?: Constraint[];
+};
+
+type ForgeConfigType = Record<string, unknown>;
+
+type MinimalWallet = {
+  publicKey: PublicKey;
+  signTransaction: (tx: unknown) => Promise<unknown>;
+  signAllTransactions: (txs: unknown[]) => Promise<unknown[]>;
+  payer?: { publicKey: PublicKey };
+};
+
 export default function MintPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -47,8 +73,8 @@ export default function MintPage() {
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const { setVisible } = useWalletModal();
-  const [recipe, setRecipe] = useState<any>(null);
-  const [forgeConfig, setForgeConfig] = useState<any>(null);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [forgeConfig, setForgeConfig] = useState<ForgeConfigType | null>(null);
   const [loading, setLoading] = useState(true);
   const [forging, setForging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,8 +82,8 @@ export default function MintPage() {
   const [client, setClient] = useState<ForgeClient | null>(null);
 
   useEffect(() => {
-    if (!slug) {
-      setLoading(false);
+    // Wait until we have a slug and a wallet adapter available; otherwise ForgeClient will throw.
+    if (!slug || !anchorWallet) {
       return;
     }
 
@@ -68,7 +94,13 @@ export default function MintPage() {
             "BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN"
         );
 
-        const forgeClient = await createForgeClient(connection, programId, anchorWallet as any);
+        const walletForClient = anchorWallet
+          ? ({ ...anchorWallet, payer: { publicKey: anchorWallet.publicKey } } as MinimalWallet)
+          : undefined;
+
+        // Wallet adapter does not expose a payer; we provide a compatible shape for browser usage.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const forgeClient = await createForgeClient(connection, programId, walletForClient as any);
         setClient(forgeClient);
 
         // Localnet-specific prerequisite: the Metaplex Token Metadata program must be present.
@@ -154,7 +186,7 @@ export default function MintPage() {
 
       // Compute input hash
       const inputHash = await client.computeInputHash(ingredientChunks);
-      const inputHashArray = Array.from(inputHash) as [number, ...number[]] & { length: 32 };
+      const inputHashArray = Array.from(inputHash) as number[];
 
       // Derive PDAs
       const [forgeConfigPDA] = client.deriveForgeConfigPDA(forgeAuthority);
@@ -168,7 +200,7 @@ export default function MintPage() {
       const masterEdition = deriveMasterEditionPda(mintKeypair.publicKey);
 
       // For the first “portfolio proof” recipe we recommend zero ingredients:
-      const remainingAccounts: Array<{ pubkey: PublicKey; isSigner: boolean; isWritable: boolean }> = [];
+      const remainingAccounts: { pubkey: PublicKey; isSigner: boolean; isWritable: boolean }[] = [];
 
       const sig = await client.program.methods
         .forgeAsset({ inputHash: inputHashArray })
@@ -192,9 +224,10 @@ export default function MintPage() {
         .rpc();
 
       setSuccess(`Forged successfully. Signature: ${sig}\nMint: ${mintKeypair.publicKey.toBase58()}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error forging:", error);
-      setError(`Error: ${error.message}`);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      setError(`Error: ${message}`);
     } finally {
       setForging(false);
     }
@@ -209,128 +242,165 @@ export default function MintPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6">Forge Asset</h1>
-      
-      <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Recipe: {slug}</h2>
-        <p className="text-gray-600 mb-4">
-          Connect your wallet and ensure you meet all ingredient requirements to forge this asset.
-        </p>
+    <div className="min-h-screen bg-gradient-to-b from-[#1f1208] via-[#2a1a0f] to-[#130b06] text-amber-50">
+      <div className="container mx-auto px-4 py-10 max-w-2xl">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-amber-300 drop-shadow-sm">Forge Asset</h1>
+          <p className="text-sm text-amber-200/70 mt-1">Rust-forge inspired: warm metals, dark hearth.</p>
+        </div>
 
-        {!connected ? (
-          <button
-            onClick={() => setVisible(true)}
-            className="w-full bg-blue-600 text-white px-4 py-3 rounded hover:bg-blue-700"
-          >
-            Connect Wallet
-          </button>
-        ) : (
-          <div className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded">
-              <p className="text-sm text-gray-600 mb-2">Connected Wallet:</p>
-              <p className="font-mono text-sm">{publicKey?.toString()}</p>
-            </div>
+        <div className="bg-[#2b1b10]/70 backdrop-blur border border-amber-900/60 rounded-lg p-6 mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+          <h2 className="text-xl font-semibold text-amber-200 mb-3">Recipe: {slug}</h2>
+          <p className="text-amber-100/80 mb-4">
+            Connect your wallet and ensure you meet all ingredient requirements to forge this asset.
+          </p>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 p-4 rounded">
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            )}
-
-            {success && (
-              <div className="bg-green-50 border border-green-200 p-4 rounded">
-                <p className="text-sm text-green-800">{success}</p>
-              </div>
-            )}
-
-            {recipe && (
-              <div className="bg-gray-50 p-4 rounded">
-                <p className="text-sm font-semibold mb-2">Recipe Details:</p>
-                <p className="text-xs text-gray-600">Status: {recipe.status}</p>
-                <p className="text-xs text-gray-600">Minted: {recipe.minted?.toString() || "0"}</p>
-                {recipe.supplyCap && (
-                  <p className="text-xs text-gray-600">Supply Cap: {recipe.supplyCap.toString()}</p>
-                )}
-                {recipe.ingredientConstraints && recipe.ingredientConstraints.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-xs font-semibold">Ingredient Constraints:</p>
-                    <ul className="text-xs text-gray-600 list-disc list-inside">
-                      {recipe.ingredientConstraints.map((c: any, i: number) => (
-                        <li key={i}>
-                          {c.Signer && `Signer: ${c.Signer.authority}`}
-                          {c.TokenMint && `Token: ${c.TokenMint.mint} (${c.TokenMint.amount})`}
-                          {c.CollectionNft && `Collection: ${c.CollectionNft.collectionMint}`}
-                          {c.Allowlist && `Allowlist: ${Array.from(new Uint8Array(c.Allowlist.merkleRoot)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16)}...`}
-                          {c.CustomSeeds && `Custom Seeds: ${c.CustomSeeds.seeds.length} bytes`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded">
-              <p className="text-sm text-yellow-800">
-                ⚠️ Ingredient verification required. Ensure you have all required tokens/NFTs/allowlist proofs.
-                {recipe && !recipe.ingredientConstraints?.length && " This recipe has no ingredient constraints."}
-              </p>
-            </div>
-
+          {!connected ? (
             <button
-              onClick={handleForge}
-              disabled={forging || !recipe || !forgeConfig}
-              className="w-full bg-green-600 text-white px-4 py-3 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => setVisible(true)}
+              className="w-full bg-blue-600 text-white px-4 py-3 rounded hover:bg-blue-700"
             >
-              {forging ? "Forging..." : "Forge Asset"}
+              Connect Wallet
             </button>
-          </div>
-        )}
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-[#1d120b] border border-amber-900/60 p-4 rounded">
+                <p className="text-sm text-amber-100/80 mb-2">Connected Wallet:</p>
+                <p className="font-mono text-xs text-amber-200 break-all">{publicKey?.toString()}</p>
+              </div>
+
+              {!anchorWallet && (
+                <div className="bg-amber-900/30 border border-amber-700 p-4 rounded">
+                  <p className="text-sm text-amber-100">
+                    Wallet adapter is not ready yet. If this persists, refresh the page and reconnect.
+                  </p>
+                </div>
+              )}
+
+              {error && (
+                <div className="bg-red-900/30 border border-red-700 p-4 rounded">
+                  <p className="text-sm text-red-100">{error}</p>
+                </div>
+              )}
+
+              {success && (
+                <div className="bg-emerald-900/30 border border-emerald-700 p-4 rounded">
+                  <p className="text-sm text-emerald-100 whitespace-pre-wrap">{success}</p>
+                </div>
+              )}
+
+              {recipe && (
+                <div className="bg-[#1d120b] border border-amber-900/60 p-4 rounded">
+                  <p className="text-sm font-semibold text-amber-200 mb-2">Recipe Details:</p>
+                  <p className="text-xs text-amber-100/80">
+                    Status: {recipe.status?.active ? "active" : recipe.status?.paused ? "paused" : JSON.stringify(recipe.status)}
+                  </p>
+                  <p className="text-xs text-amber-100/80">Minted: {recipe.minted?.toString() || "0"}</p>
+                  {recipe.supplyCap && (
+                    <p className="text-xs text-amber-100/80">Supply Cap: {recipe.supplyCap.toString()}</p>
+                  )}
+                  {recipe.ingredientConstraints && recipe.ingredientConstraints.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs font-semibold text-amber-200">Ingredient Constraints:</p>
+                      <ul className="text-xs text-amber-100/80 list-disc list-inside">
+                        {recipe.ingredientConstraints.map((c: Constraint, i: number) => (
+                          <li key={i}>
+                            {c.Signer && `Signer: ${c.Signer.authority}`}
+                            {c.TokenMint && `Token: ${c.TokenMint.mint} (${c.TokenMint.amount})`}
+                            {c.CollectionNft && `Collection: ${c.CollectionNft.collectionMint}`}
+                            {c.Allowlist &&
+                              `Allowlist: ${Array.from(new Uint8Array(c.Allowlist.merkleRoot as ArrayBuffer))
+                                .map((b) => b.toString(16).padStart(2, "0"))
+                                .join("")
+                                .slice(0, 16)}...`}
+                            {c.CustomSeeds &&
+                              `Custom Seeds: ${
+                                c.CustomSeeds.seeds instanceof Uint8Array
+                                  ? c.CustomSeeds.seeds.length
+                                  : Array.isArray(c.CustomSeeds.seeds)
+                                    ? c.CustomSeeds.seeds.length
+                                    : (c.CustomSeeds.seeds as ArrayBuffer).byteLength || 0
+                              } bytes`}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="bg-amber-900/30 border border-amber-700 p-4 rounded">
+                <p className="text-sm text-amber-100">
+                  (Notice) Ingredient verification required. Ensure you have all required tokens/NFTs/allowlist proofs.
+                  {recipe && !recipe.ingredientConstraints?.length && " This recipe has no ingredient constraints."}
+                </p>
+              </div>
+
+              <button
+                onClick={handleForge}
+                disabled={forging || !recipe || !forgeConfig}
+                className="w-full bg-amber-600 text-amber-50 px-4 py-3 rounded hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_6px_20px_rgba(0,0,0,0.35)]"
+              >
+                {forging ? "Forging..." : "Forge Asset"}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Ingredient Requirements</h2>
-        {recipe && recipe.ingredientConstraints && recipe.ingredientConstraints.length > 0 ? (
-          <div className="space-y-2">
-            {recipe.ingredientConstraints.map((constraint: any, i: number) => (
-              <div key={i} className="bg-gray-50 p-3 rounded">
-                {constraint.Signer && (
-                  <p className="text-sm">
-                    <strong>Signer:</strong> {constraint.Signer.authority}
-                  </p>
-                )}
-                {constraint.TokenMint && (
-                  <p className="text-sm">
-                    <strong>Token:</strong> {constraint.TokenMint.mint} (Amount: {constraint.TokenMint.amount})
-                  </p>
-                )}
-                {constraint.CollectionNft && (
-                  <p className="text-sm">
-                    <strong>Collection NFT:</strong> {constraint.CollectionNft.collectionMint}
-                  </p>
-                )}
-                {constraint.Allowlist && (
-                  <p className="text-sm">
-                    <strong>Allowlist:</strong> Merkle proof required
-                  </p>
-                )}
-                {constraint.CustomSeeds && (
-                  <p className="text-sm">
-                    <strong>Custom Seeds:</strong> {constraint.CustomSeeds.seeds.length} bytes
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-600">
-            {recipe ? "This recipe has no ingredient constraints." : "Loading recipe requirements..."}
+      <div className="container mx-auto px-4 pb-10 max-w-2xl">
+        <div className="bg-[#2b1b10]/70 backdrop-blur border border-amber-900/60 rounded-lg p-6 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+          <h2 className="text-xl font-semibold text-amber-200 mb-4">Ingredient Requirements</h2>
+              {recipe && recipe.ingredientConstraints && recipe.ingredientConstraints.length > 0 ? (
+            <div className="space-y-2">
+              {recipe.ingredientConstraints.map((constraint: Constraint, i: number) => (
+                <div key={i} className="bg-[#1d120b] border border-amber-900/60 p-3 rounded">
+                  {constraint.Signer && (
+                    <p className="text-sm text-amber-100">
+                      <strong>Signer:</strong> {constraint.Signer.authority}
+                    </p>
+                  )}
+                  {constraint.TokenMint && (
+                    <p className="text-sm text-amber-100">
+                      <strong>Token:</strong> {constraint.TokenMint.mint} (Amount: {constraint.TokenMint.amount})
+                    </p>
+                  )}
+                  {constraint.CollectionNft && (
+                    <p className="text-sm text-amber-100">
+                      <strong>Collection NFT:</strong> {constraint.CollectionNft.collectionMint}
+                    </p>
+                  )}
+                  {constraint.Allowlist && (
+                    <p className="text-sm text-amber-100">
+                      <strong>Allowlist:</strong> Merkle proof required
+                    </p>
+                  )}
+                  {constraint.CustomSeeds && (
+                    <p className="text-sm text-amber-100">
+                      <strong>Custom Seeds:</strong>{" "}
+                      {(() => {
+                        const seeds = constraint.CustomSeeds?.seeds;
+                        if (!seeds) return 0;
+                        if (seeds instanceof Uint8Array) return seeds.length;
+                        if (Array.isArray(seeds)) return seeds.length;
+                        return (seeds as ArrayBuffer).byteLength || 0;
+                      })()}{" "}
+                      bytes
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-amber-100/80">
+              {recipe ? "This recipe has no ingredient constraints." : "Loading recipe requirements..."}
+            </p>
+          )}
+          <p className="text-sm text-amber-200/70 mt-4">
+            Note: If this fails with account-not-found, ensure you deployed + ran `npm run init-forge` and
+            created/activated the recipe on the same cluster.
           </p>
-        )}
-        <p className="text-sm text-gray-500 mt-4">
-          Note: If this fails with “account not found”, ensure you deployed + ran `npm run init-forge` and created/activated the recipe on the same cluster.
-        </p>
+        </div>
       </div>
     </div>
   );

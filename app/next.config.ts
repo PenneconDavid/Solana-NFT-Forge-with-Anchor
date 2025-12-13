@@ -1,10 +1,10 @@
+import path from "path";
 import type { NextConfig } from "next";
 
+// Set Turbopack root to the repo root (one level above /app) so tsconfig extends "../tsconfig.base.json" resolves.
 const nextConfig: NextConfig = {
-  // Prevent Turbopack from incorrectly inferring a parent workspace root (due to multiple lockfiles).
-  // This repo is intentionally nested under another directory that may also have a lockfile.
   turbopack: {
-    root: __dirname,
+    root: path.join(__dirname, ".."),
   },
 };
 
