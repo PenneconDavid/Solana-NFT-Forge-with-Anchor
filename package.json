@@ -1,0 +1,17 @@
+{
+  "name": "solana-nft-forge-with-anchor",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "npm run lint --prefix app",
+    "typecheck": "npm run typecheck --prefix app && npm run typecheck --prefix scripts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "prettier": "^3.3.3"
+  }
+}

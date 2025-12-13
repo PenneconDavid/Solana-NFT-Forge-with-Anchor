@@ -1,0 +1,12 @@
+[package]
+name = "forge-tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anchor-client = "0.32.1"
+anchor-lang = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+openssl-sys = { workspace = true }
+

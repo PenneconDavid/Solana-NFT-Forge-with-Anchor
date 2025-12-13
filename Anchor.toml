@@ -1,0 +1,15 @@
+[workspace]
+members = [
+  "programs/forge",
+]
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[programs.localnet]
+forge = "BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN"
+
+[scripts]
+test = "anchor test"
+

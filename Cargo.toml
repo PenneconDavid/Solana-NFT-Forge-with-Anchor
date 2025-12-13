@@ -1,0 +1,18 @@
+[workspace]
+members = [
+  "programs/forge",
+  "programs/forge-tests"
+]
+resolver = "2"
+
+[workspace.dependencies]
+anchor-lang = "0.32.1"
+anchor-spl = "0.32.1"
+anyhow = "1.0"
+tokio = { version = "1.39.1", features = ["full"] }
+openssl-sys = { version = "0.9", features = ["vendored"] }
+solana-program = "2.3.0"
+
+[profile.release]
+overflow-checks = true
+

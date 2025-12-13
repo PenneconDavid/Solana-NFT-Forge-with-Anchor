@@ -1,0 +1,29 @@
+{
+  "name": "forge-scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "init-forge": "ts-node src/init-forge.ts",
+    "create-recipe": "ts-node src/create-recipe.ts",
+    "toggle-recipe": "ts-node src/toggle-recipe.ts",
+    "forge-example": "ts-node src/forge-example.ts",
+    "forge-asset": "ts-node src/forge-asset.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
+    "@metaplex-foundation/umi": "^1.4.1",
+    "@noble/hashes": "^2.0.1",
+    "@solana/web3.js": "^1.98.4",
+    "commander": "^12.1.0",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

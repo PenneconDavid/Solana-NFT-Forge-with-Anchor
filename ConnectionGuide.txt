@@ -1,0 +1,39 @@
+Solana-NFT-Forge-with-Anchor Connection Guide
+==============================================
+
+Program Information
+- Program ID (localnet): BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
+- Metaplex Token Metadata Program: metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s
+
+Local Development
+- Local validator RPC (default): http://127.0.0.1:8899
+- Local validator WebSocket (default): ws://127.0.0.1:8900
+- Local validator faucet (default): http://127.0.0.1:9900 (binds 0.0.0.0:9900)
+- Frontend dev server: http://localhost:3000
+- Localnet prerequisite (Token Metadata): start validator with `scripts/start-validator.ps1 -CloneTokenMetadata` so `metaqbxx...` exists on localnet for CPI
+
+Shared Networks
+- Solana devnet RPC: https://api.devnet.solana.com
+- Solana devnet WebSocket: wss://api.devnet.solana.com
+- Solana mainnet RPC: https://api.mainnet-beta.solana.com
+- Solana mainnet WebSocket: wss://api.mainnet-beta.solana.com
+
+External Services
+- Pinata API base URL: https://api.pinata.cloud
+- Pinata public gateway (example): https://gateway.pinata.cloud
+- Pinata JWT: Set via PINATA_JWT environment variable
+
+IDL Locations
+- Generated IDL: target/idl/forge.json
+- Scripts IDL: scripts/idl/forge.json
+- Frontend IDL: app/public/idl/forge.json
+
+Developer Tool Paths
+- Anchor CLI: C:\Users\dseib\.avm\bin\anchor.exe
+- Solana/Agave install root (active): C:\solana\install
+- Localnet validator binary (recommended on Windows): C:\solana\install\releases\2.3.13\solana-release\bin\solana-test-validator.exe
+
+CLI Script Endpoints
+- Scripts run from: scripts/ directory
+- Commands: npm run init-forge, create-recipe, toggle-recipe, forge-asset, forge-example
+

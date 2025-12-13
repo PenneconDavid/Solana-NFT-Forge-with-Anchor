@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: rustfmt, clippy
+
+      - name: Install root npm dependencies
+        run: npm ci
+
+      - name: Install app dependencies
+        run: npm ci
+        working-directory: app
+
+      - name: Install scripts dependencies
+        run: npm ci
+        working-directory: scripts
+
+      - name: Check Rust formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Cargo tests
+        run: cargo test
+
+      - name: Typecheck scripts
+        run: npm run typecheck --prefix scripts
+
+      - name: App ESLint
+        run: npm run lint --prefix app
+
+      - name: App typecheck
+        run: npm run typecheck --prefix app
+
+      - name: Prettier check
+        run: npm run format:check
+

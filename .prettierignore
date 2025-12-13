@@ -1,0 +1,8 @@
+.next
+node_modules
+target
+dist
+app/.next
+app/node_modules
+scripts/dist
+
