@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## NFT Forge — Frontend (App Router)
 
-## Getting Started
+Next.js frontend for the Solana NFT Forge project. Neumorphic + nature accent theme, wallet adapter integration, and recipe/mint flows.
 
-First, run the development server:
-
+### Quick start
 ```bash
+cd app
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# lint/typecheck/build
+npm run lint
+npm run typecheck
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment
+Set in `.env.local` (browser-safe keys must be prefixed with `NEXT_PUBLIC_`):
+- `NEXT_PUBLIC_CLUSTER` (e.g., `devnet` or `localnet`)
+- `NEXT_PUBLIC_SOLANA_RPC_URL`
+- `NEXT_PUBLIC_FORGE_PROGRAM_ID`
+- `NEXT_PUBLIC_FORGE_AUTHORITY`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Assets & theme
+- Logos live in `public/logos/` (`logo-hammer.png`, `logo-lockup.png`).
+- Global styling in `app/globals.css` (neumorphic surface tokens + accent palette).
+- Footer is global and links to the author’s GitHub.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Vercel deploy tips
+- Project root: `app`
+- Install: `npm install`
+- Build: `npm run build`
+- Output: `.next`
+- Same env vars as above for both Preview/Production.
 
-## Learn More
+### Key routes
+- `/` — hero + quick links
+- `/creator/recipes` — creator dashboard list
+- `/creator/recipes/[slug]` — recipe detail
+- `/creator/recipes/new` — create recipe form (placeholder flow)
+- `/mint/[slug]` — mint/forge page (uses wallet adapter)
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Notes
+- Wallet connection via Solana Wallet Adapter; Phantom/Solflare supported.
+- IDL is read from `public/idl/forge.json` for client program interactions.

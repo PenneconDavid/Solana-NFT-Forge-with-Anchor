@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
@@ -13,6 +14,18 @@ export default function HomePage() {
         <div className="relative overflow-hidden neu-ghost px-8 py-12 max-w-6xl mx-auto">
           <div className="absolute inset-0 opacity-50 blur-3xl bg-gradient-to-r from-[rgba(90,196,141,0.12)] via-[rgba(73,192,215,0.12)] to-[rgba(255,127,111,0.12)] pointer-events-none" />
           <div className="relative text-center space-y-5">
+            <div className="flex justify-center">
+              <div className="relative w-[280px] h-[80px] sm:w-[340px] sm:h-[96px] mb-2">
+                <Image
+                  src="/logos/logo-lockup.png"
+                  alt="NFT Forge lockup"
+                  fill
+                  sizes="340px"
+                  className="object-contain drop-shadow-[0_12px_35px_rgba(90,196,141,0.25)]"
+                  priority
+                />
+              </div>
+            </div>
             <p className="text-sm uppercase tracking-[0.35em] text-[var(--text-muted)]">Solana NFT Forge</p>
             <h1 className="text-5xl md:text-6xl font-semibold leading-tight">
               Craft on-chain assets with <span className="text-[var(--accent-secondary)]">recipes</span> and{" "}

@@ -13,6 +13,7 @@
     - Mint: `DySpq8N9WprwMUDf6HuJvBrTtupwevMjezVFMeV4qAnx`
     - Metadata PDA: `BaatT2nYEHbqPNPUmqzYcNKpBSfQUaH5VrhfPPrFQFyV`
     - Master Edition PDA: `9UwqooyJSSWtRAh5q5tsxBEXZaLg2k8URiVb9MrnDUEa`
+- **UI refresh**: global footer with attribution link, branded lockup/hammer logos in `app/public/logos/`, and polished neumorphic homepage cards.
 
 ### What remains (and what we intentionally deferred)
 **Still to do (core portfolio path)**
