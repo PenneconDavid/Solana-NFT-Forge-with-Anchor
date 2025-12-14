@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import logoLockup from "../public/logos/logo-lockup.png";
+import logoLockup from "@/public/logos/logo-lockup.png";
 
 export default function HomePage() {
   const { connected } = useWallet();
