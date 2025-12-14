@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import logoLockup from "@/public/logos/logo-lockup.png";
 
 export default function HomePage() {
   const { connected } = useWallet();
@@ -18,7 +17,7 @@ export default function HomePage() {
             <div className="flex justify-center">
               <div className="relative w-[280px] h-[80px] sm:w-[340px] sm:h-[96px] mb-2">
                 <Image
-                  src={logoLockup}
+                  src="/logos/logo-lockup.png"
                   alt="NFT Forge lockup"
                   width={340}
                   height={96}
