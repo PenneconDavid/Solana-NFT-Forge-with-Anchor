@@ -17,7 +17,7 @@ export default function HomePage() {
             <div className="flex justify-center">
               <div className="relative w-[280px] h-[80px] sm:w-[340px] sm:h-[96px] mb-2">
                 <Image
-                  src="/logos/logo-lockup.png"
+                  src="/logo-lockup.png"
                   alt="NFT Forge lockup"
                   width={340}
                   height={96}

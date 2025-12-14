@@ -37,7 +37,7 @@ export default function RootLayout({
                 <div className="flex items-center gap-3">
                   <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)]">
                     <Image
-                      src="/logos/logo-hammer.png"
+                      src="/logo-hammer.png"
                       alt="NFT Forge logo"
                       width={36}
                       height={36}
