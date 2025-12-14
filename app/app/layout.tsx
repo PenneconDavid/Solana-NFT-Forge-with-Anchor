@@ -39,8 +39,8 @@ export default function RootLayout({
                     <Image
                       src="/logos/logo-hammer.png"
                       alt="NFT Forge logo"
-                      fill
-                      sizes="36px"
+                      width={36}
+                      height={36}
                       className="object-contain p-1.5"
                       priority
                     />

@@ -19,8 +19,8 @@ export default function HomePage() {
                 <Image
                   src="/logos/logo-lockup.png"
                   alt="NFT Forge lockup"
-                  fill
-                  sizes="340px"
+                  width={340}
+                  height={96}
                   className="object-contain drop-shadow-[0_12px_35px_rgba(90,196,141,0.25)]"
                   priority
                 />
