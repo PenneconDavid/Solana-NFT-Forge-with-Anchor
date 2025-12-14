@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WalletContextProvider } from "@/lib/wallet";
+import logoHammer from "@/public/logos/logo-hammer.png";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +38,7 @@ export default function RootLayout({
                 <div className="flex items-center gap-3">
                   <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)]">
                     <Image
-                      src="/logos/logo-hammer.png"
+                      src={logoHammer}
                       alt="NFT Forge logo"
                       width={36}
                       height={36}
