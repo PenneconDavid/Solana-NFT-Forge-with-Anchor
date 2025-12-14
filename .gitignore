@@ -61,6 +61,12 @@ CURRENT
 IDENTITY
 LOCK
 LOG*
+
+# Allow UI logo assets under app/public
+!app/public/logo-hammer.png
+!app/public/logo-lockup.png
+!app/public/logos/
+!app/public/logos/**
 MANIFEST-*
 OPTIONS-*
 
