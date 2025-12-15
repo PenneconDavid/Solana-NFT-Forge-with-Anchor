@@ -47,7 +47,7 @@ a:hover {
   box-shadow: var(--shadow-strong), var(--shadow-soft);
   border: 1px solid var(--border);
   border-radius: 14px;
-}
+  }
 
 .neu-ghost {
   background: linear-gradient(145deg, rgba(24, 32, 27, 0.8), rgba(29, 39, 33, 0.6));

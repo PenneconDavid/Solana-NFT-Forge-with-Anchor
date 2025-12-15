@@ -1,31 +1,36 @@
 ### Solana “NFT Forge” with Anchor — Vision + Status (single source of truth)
 
-**Last updated**: 2025-12-13
+**Last updated**: 2025-12-14
 
 ### Status snapshot (where we are right now)
-- **Localnet (Windows) is stable and repeatable** using `solana-test-validator v2.3.13` with `scripts/start-validator.ps1`.
-- **Program ID (localnet)**: `BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
-- **Option 2 (CLI mint / “forge_asset” end-to-end)**: ✅ **DONE**
-  - CLI: `scripts/src/forge-asset.ts` (`npm run forge-asset`)
-  - Requires Token Metadata program present on localnet (see “Localnet note” below)
-  - Proven mint:
-    - Signature: `2pN5G8DRdQShkgwgJkdbYU913RLAX6KzGZp9Rstszmmj2hfcLUM7fsJeLJ4kV8c1MxS3V1Gv1QEi8nwKX4hV2DHG`
-    - Mint: `DySpq8N9WprwMUDf6HuJvBrTtupwevMjezVFMeV4qAnx`
-    - Metadata PDA: `BaatT2nYEHbqPNPUmqzYcNKpBSfQUaH5VrhfPPrFQFyV`
-    - Master Edition PDA: `9UwqooyJSSWtRAh5q5tsxBEXZaLg2k8URiVb9MrnDUEa`
-- **UI refresh**: global footer with attribution link, branded lockup/hammer logos in `app/public/logos/`, and polished neumorphic homepage cards.
+- **Localnet (Windows) stable** using `solana-test-validator v2.3.13` with `scripts/start-validator.ps1`.
+- **Devnet deployed & proven** (via Docker toolchain: solana-cli 3.0.13, rustc 1.92.0):
+  - Program ID: `BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
+  - IDL account: `5icFcScscSR7XBBCtKz6ipPc63QRkmLYYpvfpeL2UDSm`
+  - Forge initialized: `AijiehS47c9CdZhCp2swXTdWg8LmBkqM25u4DS1kiYVE`
+  - Recipe (active): slug `iron-sword`, v1, PDA `7vhHcp7GmLe7ypbvA2tztB4QH6que6GhwB35KMzjqj6Z`
+  - Forge tx: `GEsmRwLGMkuPAcjGLi4obV5UZ45PWyCxoKoBrKJC8WGRFv4ycc7mpHwzhvTfZ5PZDiUYB5XoavNy8FFq87HtuKm`
+  - Mint: `96V7rQjb48r28NySW7h3N3ZunncCZZP5KfAgCWvac8rz`
+- **Localnet proof (historical)**: tx `2pN5G8DRdQShkgwgJkdbYU913RLAX6KzGZp9Rstszmmj2hfcLUM7fsJeLJ4kV8c1MxS3V1Gv1QEi8nwKX4hV2DHG`.
+- **UI refresh**: global footer with attribution, logos under `app/public/logos/`, rust/neumorphic theme applied.
 
 ### What remains (and what we intentionally deferred)
 **Still to do (core portfolio path)**
-- **Frontend transaction sending (Option 1)**: wire `/mint/[slug]` to send the real `forge_asset` transaction via wallet adapter, then display mint + signature.
-- **Testing**: turn the existing integration/e2e scaffolding into at least one real “happy path” and one negative test.
+- **Frontend tx send**: wire `/mint/[slug]` to send real `forge_asset`, display signature/mint.
+- **Testing**: add at least one happy-path and one negative test (scripts or frontend).
+- **Docs cleanup**: retire `vision.md` when public; keep README as primary.
 
-**Deferred / skipped on purpose (not required for the proven localnet mint)**
-- **Devnet walkthrough/demo**: desired later; plan to deploy to devnet and capture a public walkthrough when ready.
+**Deferred / skipped on purpose**
+- Devnet walkthrough/demo video (future nice-to-have).
 - **Editions + semi-fungibles**: minting paths for `OutputKind::Edition` / `OutputKind::SemiFungible` beyond OneOfOne.
 - **Collection verification**: Token Metadata “verify collection” CPIs and authority flows.
 - **Freeze/thaw workflows**: full freeze authority UX and admin tooling.
 - **Big-N scale**: compressed NFTs (Bubblegum / state compression).
+
+### Devnet deployment plan (Windows-friendly options)
+- **Option A (recommended)**: Use a Linux CI runner (GitHub Actions) to `anchor build` and `anchor deploy` to devnet using an encrypted key (devnet authority) stored as a secret. This avoids local Windows SBF toolchain issues and keeps the workflow reproducible.
+- **Option B (Docker on Windows)**: Run the build/deploy inside a Linux Docker container (Anchor + Solana toolchain image) mounting the repo, then `anchor build && anchor deploy --provider.cluster devnet`. This keeps everything on Windows without WSL, but relies on Docker Desktop.
+- **Fallback**: WSL/Ubuntu path already proven viable if needed.
 
 ### Localnet note (important): Token Metadata program is required
 - The Forge program CPIs into **Metaplex Token Metadata** at:

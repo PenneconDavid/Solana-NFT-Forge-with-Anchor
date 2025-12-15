@@ -37,12 +37,32 @@ export default function HomePage() {
             <div className="flex flex-wrap justify-center gap-4 items-center">
               <WalletMultiButton className="!bg-[var(--accent-primary)] !text-[#0b0f0b] !font-semibold !px-5 !py-3 !rounded-xl btn-glow" />
               <Link
-                href="/mint/example"
+                href="/mint/iron-sword"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[rgba(255,255,255,0.08)] text-[var(--accent-tertiary)] hover:text-[var(--accent-secondary)] transition"
               >
-                Explore mint flow →
+                Forge iron-sword →
               </Link>
             </div>
+          </div>
+        </div>
+
+        <div className="mt-8 max-w-5xl mx-auto">
+          <div className="neu-panel p-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-sm text-[var(--accent-tertiary)] mb-1">Devnet live</div>
+              <div className="font-semibold text-lg text-[var(--text)]">
+                Program: BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
+              </div>
+              <div className="text-sm text-[var(--text-muted)]">
+                Recipe <span className="font-mono text-[var(--accent-secondary)]">iron-sword</span> (v1) is active on devnet.
+              </div>
+            </div>
+            <Link
+              href="/mint/iron-sword"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[rgba(255,255,255,0.08)] text-[var(--accent-primary)] hover:text-[var(--accent-secondary)] transition font-semibold"
+            >
+              Go to mint →
+            </Link>
           </div>
         </div>
 
@@ -63,8 +83,8 @@ export default function HomePage() {
               Use recipes to forge new NFTs once you meet ingredient requirements. Wallet-ready and fast.
             </p>
             {connected ? (
-              <Link href="/mint/example" className="inline-flex items-center gap-2 text-[var(--accent-primary)] font-semibold hover:text-[var(--accent-secondary)]">
-                Browse recipes →
+              <Link href="/mint/iron-sword" className="inline-flex items-center gap-2 text-[var(--accent-primary)] font-semibold hover:text-[var(--accent-secondary)]">
+                Forge iron-sword →
               </Link>
             ) : (
               <p className="text-[var(--text-muted)] text-sm">Connect wallet to forge.</p>

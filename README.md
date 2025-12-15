@@ -4,7 +4,13 @@ Production-grade forging: define recipes with ingredient constraints and mint NF
 
 ## Current status
 - Localnet: proven end-to-end 1/1 mint via CLI (`forge_asset`).
-- Devnet: pending deployment (program id placeholder set in env; mint disabled until deployed).
+- Devnet: **deployed and proven** (built via Docker with solana-cli 3.0.13, rustc 1.92.0).
+  - Program ID: `BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
+  - IDL account: `5icFcScscSR7XBBCtKz6ipPc63QRkmLYYpvfpeL2UDSm`
+  - Forge Config PDA: `AijiehS47c9CdZhCp2swXTdWg8LmBkqM25u4DS1kiYVE`
+  - Recipe: slug `iron-sword`, v1, PDA `7vhHcp7GmLe7ypbvA2tztB4QH6que6GhwB35KMzjqj6Z`
+  - Forge tx: `GEsmRwLGMkuPAcjGLi4obV5UZ45PWyCxoKoBrKJC8WGRFv4ycc7mpHwzhvTfZ5PZDiUYB5XoavNy8FFq87HtuKm`
+  - Mint: `96V7rQjb48r28NySW7h3N3ZunncCZZP5KfAgCWvac8rz`
 - Frontend: Vercel-ready; global footer, logo branding, and rust-themed styling applied.
 
 ## Repo layout
@@ -53,8 +59,17 @@ npm run forge-asset -- -s my-recipe -v 1
 ```
 
 ## Deployment notes
-- Vercel: root `app/`, build `npm run build`, output `.next`. Use devnet env vars above. Minting will fail until the program is actually on devnet.
-- Devnet: scripts `scripts/deploy-devnet.(ps1|sh)` once toolchain is unblocked.
+- Vercel:
+  - Root directory: `app/`
+  - Build command: `npm run build`
+  - Output: `.next`
+  - Environment variables (Project → Settings → Environment Variables):
+    - `NEXT_PUBLIC_CLUSTER=devnet`
+    - `NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com`
+    - `NEXT_PUBLIC_FORGE_PROGRAM_ID=BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
+    - `NEXT_PUBLIC_FORGE_AUTHORITY=Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA`
+    - (optional) `NEXT_PUBLIC_FORGE_IDL_URL` if you host the IDL separately; otherwise rely on `app/public/idl/forge.json`.
+- Devnet: already deployed; scripts in `scripts/` run with `CLUSTER=devnet` and `SOLANA_RPC_URL=https://api.devnet.solana.com`.
 
 ## Assets & UI
 - Logos now in `app/public/logos/` (`logo-hammer.png`, `logo-lockup.png`); footer shows “Built by { David Seibold }” with GitHub link.

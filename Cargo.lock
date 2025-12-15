@@ -1215,6 +1215,8 @@ dependencies = [
  "anchor-spl",
  "mpl-token-metadata",
  "solana-program",
+ "solana-pubkey",
+ "solana-zk-sdk",
 ]
 
 [[package]]

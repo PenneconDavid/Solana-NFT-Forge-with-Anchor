@@ -3,7 +3,7 @@ Solana-NFT-Forge-with-Anchor Connection Guide
 
 Program Information
 - Program ID (localnet): BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
-- Program ID (devnet): BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN (not yet deployed; mint disabled for Vercel until devnet deploy)
+- Program ID (devnet): BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
 - Metaplex Token Metadata Program: metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s
 
 Local Development
@@ -23,6 +23,7 @@ External Services
 - Pinata API base URL: https://api.pinata.cloud
 - Pinata public gateway (example): https://gateway.pinata.cloud
 - Pinata JWT: Set via PINATA_JWT environment variable
+- Solana release downloads (toolchain): https://release.anza.xyz (used to fetch Solana CLI/SBF tarballs; Docker image installs “stable” and now uses solana-cli 3.0.13 / rustc 1.92.0)
 
 Vercel Deployment (planned)
 - Frontend URL: https://<pending>.vercel.app (set after deployment)
