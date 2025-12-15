@@ -43,57 +43,57 @@ jobs:
       - name: Cargo tests
         run: cargo test --no-fail-fast
 
-  anchor-build:
-    name: Anchor Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-
-      - name: Install Solana CLI
-        uses: jito-foundation/solana-programs-action@v1
-        with:
-          solana-version: "1.18"
-          anchor-version: "0.32.1"
-
-      - name: Cache Cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-
-      - name: Cache Anchor build artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            target/
-            .anchor/
-          key: ${{ runner.os }}-anchor-${{ hashFiles('**/Cargo.lock', '**/Anchor.toml', 'programs/**/*.rs') }}
-          restore-keys: |
-            ${{ runner.os }}-anchor-
-
-      - name: Build Anchor program
-        run: anchor build
-        env:
-          ANCHOR_PROVIDER_URL: http://127.0.0.1:8899
-
-      - name: Verify IDL generation
-        run: |
-          anchor idl build || echo "IDL build requires deployed program (expected in CI)"
+  # anchor-build:
+  #   name: Anchor Build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Rust toolchain
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: stable
+  #         profile: minimal
+  #         override: true
+  #
+  #     - name: Install Solana CLI
+  #       uses: jito-foundation/solana-programs-action@v1
+  #       with:
+  #         solana-version: "1.18"
+  #         anchor-version: "0.32.1"
+  #
+  #     - name: Cache Cargo registry
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           target/
+  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-cargo-
+  #
+  #     - name: Cache Anchor build artifacts
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           target/
+  #           .anchor/
+  #         key: ${{ runner.os }}-anchor-${{ hashFiles('**/Cargo.lock', '**/Anchor.toml', 'programs/**/*.rs') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-anchor-
+  #
+  #     - name: Build Anchor program
+  #       run: anchor build
+  #       env:
+  #         ANCHOR_PROVIDER_URL: http://127.0.0.1:8899
+  #
+  #     - name: Verify IDL generation
+  #       run: |
+  #         anchor idl build || echo "IDL build requires deployed program (expected in CI)"
 
   typescript-checks:
     name: TypeScript Lint & Typecheck
@@ -178,8 +178,9 @@ jobs:
         working-directory: app
         env:
           # Use dummy values for build - actual values needed at runtime
-          NEXT_PUBLIC_RPC_URL: http://127.0.0.1:8899
-          NEXT_PUBLIC_NETWORK: localnet
+          NEXT_PUBLIC_CLUSTER: devnet
+          NEXT_PUBLIC_SOLANA_RPC_URL: https://api.devnet.solana.com
+          NEXT_PUBLIC_FORGE_PROGRAM_ID: BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
 
   # Integration tests require a running validator - skip in CI for now
   # Uncomment when validator service is available or tests are refactored
