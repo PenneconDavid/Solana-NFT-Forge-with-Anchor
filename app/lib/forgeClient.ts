@@ -182,12 +182,20 @@ export class ForgeClient {
    * 
    * On-chain uses: solana_program::hash::hashv(&hash_inputs)
    * This is SHA256 of concatenated inputs
+   * 
+   * For recipes with no ingredient constraints, includes the forger's pubkey
+   * to allow each wallet to forge once while preserving security.
    */
-  async computeInputHash(ingredientChunks: Uint8Array[]): Promise<Uint8Array> {
+  async computeInputHash(ingredientChunks: Uint8Array[], forgerPubkey?: PublicKey): Promise<Uint8Array> {
     if (ingredientChunks.length === 0) {
-      // Empty hash: hashv(&[&[]])
-      const emptyData = new Uint8Array(0);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", emptyData);
+      // For recipes with no ingredient constraints, include the forger's pubkey
+      // in the hash to allow each wallet to forge once while preserving security.
+      // This matches on-chain: hashv(&[forger_pubkey])
+      if (!forgerPubkey) {
+        throw new Error("forgerPubkey is required when computing hash for recipes with no ingredient constraints");
+      }
+      const forgerBytes = forgerPubkey.toBytes();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", forgerBytes);
       return new Uint8Array(hashBuffer).slice(0, 32);
     }
 

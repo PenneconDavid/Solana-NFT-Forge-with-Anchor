@@ -200,7 +200,10 @@ pub fn forge_asset(ctx: Context<ForgeAsset>, args: ForgeAssetArgs) -> Result<()>
 
         use solana_program::hash::hashv;
         if hash_chunks.is_empty() {
-            hashv(&[&[]]).to_bytes()
+            // For recipes with no ingredient constraints, include the forger's pubkey
+            // in the hash to allow each wallet to forge once while preserving security.
+            // This makes each wallet's input hash unique: hashv(&[forger_pubkey])
+            hashv(&[forger.key().as_ref()]).to_bytes()
         } else {
             let hash_inputs: Vec<&[u8]> =
                 hash_chunks.iter().map(|chunk| chunk.as_slice()).collect();

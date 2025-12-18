@@ -89,7 +89,7 @@ program
   )
   .option(
     "--input-hash <hex>",
-    "32-byte input hash (hex). If omitted and recipe has 0 ingredient constraints, uses sha256('')"
+    "32-byte input hash (hex). If omitted and recipe has 0 ingredient constraints, uses sha256(forger_pubkey)"
   )
   .option("--dry-run", "Build the transaction but do not send", false)
   .action(async (options) => {
@@ -157,8 +157,9 @@ program
               "Either use a 0-ingredient recipe for now, or tell me which constraints you want to support next and I’ll extend this script."
           );
         }
-        // On-chain logic for empty constraints: hashv(&[&[]]) == sha256(empty)
-        inputHash = sha256(Buffer.alloc(0));
+        // On-chain logic for empty constraints: hashv(&[forger_pubkey]) == sha256(forger_pubkey)
+        // This allows each wallet to forge once while preserving security
+        inputHash = sha256(wallet.publicKey.toBuffer());
       }
 
       const [recipeUsePDA] = deriveRecipeUsePDA(programId, recipePDA, inputHash);

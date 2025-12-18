@@ -339,8 +339,8 @@ export default function MintPage() {
       >[0];
       const ingredientChunks = client.buildIngredientHashChunks(constraintsForHash, publicKey);
 
-      // Compute input hash
-      const inputHash = await client.computeInputHash(ingredientChunks);
+      // Compute input hash (pass forger pubkey for 0-ingredient recipes)
+      const inputHash = await client.computeInputHash(ingredientChunks, publicKey);
       
       // Validate input hash is 32 bytes
       if (inputHash.length !== 32) {
@@ -372,9 +372,9 @@ export default function MintPage() {
         
         if (ingredientCount === 0) {
           throw new Error(
-            `This recipe has already been forged ${mintedCount} time(s). Recipes with no ingredient requirements can only be forged once ` +
-            `because everyone uses the same input hash (SHA256 of empty). ` +
-            `To allow multiple forges, create a new recipe version (e.g., v2) or add ingredient constraints that make each input unique.`
+            `You have already forged this recipe with this wallet. Each wallet can forge a recipe with no ingredient requirements once. ` +
+            `The recipe has been forged ${mintedCount} time(s) total across all wallets. ` +
+            `To forge again, use a different wallet or create a new recipe version.`
           );
         } else {
           throw new Error(
@@ -520,9 +520,9 @@ export default function MintPage() {
           const ingredientCount = recipe?.ingredientConstraints?.length || 0;
           if (ingredientCount === 0) {
             setError(
-              `This recipe has already been forged. Recipes with no ingredient requirements can only be forged once ` +
-              `because everyone uses the same input hash. The recipe shows ${recipe?.minted || 0} NFT(s) have already been minted. ` +
-              `To allow multiple forges, the recipe needs ingredient constraints that make each input hash unique.${logMessage}`
+              `You have already forged this recipe with this wallet. Each wallet can forge a recipe with no ingredient requirements once. ` +
+              `The recipe shows ${recipe?.minted || 0} NFT(s) have been minted total across all wallets. ` +
+              `To forge again, use a different wallet or create a new recipe version.${logMessage}`
             );
           } else {
             setError(
@@ -710,13 +710,14 @@ export default function MintPage() {
                     ✓ No Ingredient Requirements
                   </p>
                   <p className="text-sm text-[var(--text-muted)] mb-2">
-                    This recipe has no ingredient constraints. You can forge this asset immediately after connecting your wallet.
+                    This recipe has no ingredient constraints. Each wallet can forge this asset once. 
+                    Connect your wallet and click "Forge Asset" to mint your NFT.
                   </p>
                   {recipe && recipe.minted && (typeof recipe.minted === "number" ? recipe.minted > 0 : parseInt(recipe.minted.toString()) > 0) && (
-                    <div className="mt-2 p-2 bg-[rgba(255,200,87,0.1)] border border-[rgba(255,200,87,0.3)] rounded">
-                      <p className="text-xs text-[var(--accent-tertiary)]">
-                        ⚠️ <strong>Note:</strong> This recipe has already been forged. Recipes with no ingredients can only be forged once because everyone uses the same input hash. 
-                        To allow multiple forges, create a new recipe version or add ingredient constraints.
+                    <div className="mt-2 p-2 bg-[rgba(90,196,141,0.1)] border border-[rgba(90,196,141,0.3)] rounded">
+                      <p className="text-xs text-[var(--accent-primary)]">
+                        ℹ️ <strong>Info:</strong> This recipe has been forged {typeof recipe.minted === "number" ? recipe.minted : parseInt(recipe.minted.toString())} time(s) across all wallets. 
+                        Each wallet can still forge once.
                       </p>
                     </div>
                   )}
