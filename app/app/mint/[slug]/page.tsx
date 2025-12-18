@@ -41,9 +41,9 @@ function deriveMasterEditionPda(mint: PublicKey): PublicKey {
 }
 
 type Constraint = {
-  Signer?: { authority: string };
-  TokenMint?: { mint: string; amount: number };
-  CollectionNft?: { collectionMint: string };
+  Signer?: { authority: PublicKey | string };
+  TokenMint?: { mint: PublicKey | string; amount: number | string | bigint };
+  CollectionNft?: { collectionMint: PublicKey | string };
   Allowlist?: { merkleRoot: ArrayBuffer | Uint8Array | number[] };
   CustomSeeds?: { seeds: ArrayBuffer | Uint8Array | number[] };
 };
@@ -314,9 +314,9 @@ export default function MintPage() {
                       <ul className="text-xs text-[var(--text-muted)] list-disc list-inside">
                         {recipe.ingredientConstraints.map((c: Constraint, i: number) => (
                           <li key={i}>
-                            {c.Signer && `Signer: ${c.Signer.authority}`}
-                            {c.TokenMint && `Token: ${c.TokenMint.mint} (${c.TokenMint.amount})`}
-                            {c.CollectionNft && `Collection: ${c.CollectionNft.collectionMint}`}
+                            {c.Signer && `Signer: ${c.Signer.authority instanceof PublicKey ? c.Signer.authority.toBase58() : c.Signer.authority}`}
+                            {c.TokenMint && `Token: ${c.TokenMint.mint instanceof PublicKey ? c.TokenMint.mint.toBase58() : c.TokenMint.mint} (${c.TokenMint.amount})`}
+                            {c.CollectionNft && `Collection: ${c.CollectionNft.collectionMint instanceof PublicKey ? c.CollectionNft.collectionMint.toBase58() : c.CollectionNft.collectionMint}`}
                             {c.Allowlist &&
                               `Allowlist: ${Array.from(new Uint8Array(c.Allowlist.merkleRoot as ArrayBuffer))
                                 .map((b) => b.toString(16).padStart(2, "0"))
@@ -382,17 +382,17 @@ export default function MintPage() {
                 <div key={i} className="neu-ghost p-3 border border-[rgba(255,255,255,0.06)]">
                   {constraint.Signer && (
                     <p className="text-sm text-[var(--text)]">
-                      <strong>Signer:</strong> {constraint.Signer.authority}
+                      <strong>Signer:</strong> {constraint.Signer.authority instanceof PublicKey ? constraint.Signer.authority.toBase58() : constraint.Signer.authority}
                     </p>
                   )}
                   {constraint.TokenMint && (
                     <p className="text-sm text-[var(--text)]">
-                      <strong>Token:</strong> {constraint.TokenMint.mint} (Amount: {constraint.TokenMint.amount})
+                      <strong>Token:</strong> {constraint.TokenMint.mint instanceof PublicKey ? constraint.TokenMint.mint.toBase58() : constraint.TokenMint.mint} (Amount: {constraint.TokenMint.amount})
                     </p>
                   )}
                   {constraint.CollectionNft && (
                     <p className="text-sm text-[var(--text)]">
-                      <strong>Collection NFT:</strong> {constraint.CollectionNft.collectionMint}
+                      <strong>Collection NFT:</strong> {constraint.CollectionNft.collectionMint instanceof PublicKey ? constraint.CollectionNft.collectionMint.toBase58() : constraint.CollectionNft.collectionMint}
                     </p>
                   )}
                   {constraint.Allowlist && (

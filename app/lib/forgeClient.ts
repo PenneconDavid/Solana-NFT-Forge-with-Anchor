@@ -206,15 +206,40 @@ export class ForgeClient {
   }
 
   /**
+   * Helper to safely convert PublicKey | string to PublicKey
+   * Anchor deserializes Pubkey fields as PublicKey objects, but we need to handle both cases
+   */
+  private normalizePublicKey(value: PublicKey | string | undefined | null): PublicKey {
+    if (!value) {
+      throw new Error("Invalid public key: value is undefined or null");
+    }
+    if (value instanceof PublicKey) {
+      return value;
+    }
+    if (typeof value === "string") {
+      if (!value || value.trim() === "") {
+        throw new Error("Invalid public key: empty string");
+      }
+      try {
+        return new PublicKey(value);
+      } catch (err) {
+        throw new Error(`Invalid public key input: ${value}. ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+    throw new Error(`Invalid public key type: ${typeof value}`);
+  }
+
+  /**
    * Builds ingredient hash chunks from recipe constraints
    * Matches on-chain logic in forge_asset instruction
+   * Handles both PublicKey objects (from Anchor deserialization) and strings
    */
   buildIngredientHashChunks(
     constraints: Array<
-      | { Signer: { authority: string } }
+      | { Signer: { authority: PublicKey | string } }
       | { CustomSeeds: { seeds: Uint8Array | ArrayBuffer | number[] } }
-      | { TokenMint: { mint: string; amount: number | string | bigint } }
-      | { CollectionNft: { collectionMint: string } }
+      | { TokenMint: { mint: PublicKey | string; amount: number | string | bigint } }
+      | { CollectionNft: { collectionMint: PublicKey | string } }
       | { Allowlist: { merkleRoot: Uint8Array | ArrayBuffer | number[] } }
     >,
     _forgerPubkey: PublicKey
@@ -226,13 +251,19 @@ export class ForgeClient {
     for (const constraint of constraints) {
       if ("Signer" in constraint) {
         // Variant tag 0 + authority pubkey (32 bytes)
-        const authorityPubkey = new PublicKey(constraint.Signer.authority);
+        if (!constraint.Signer?.authority) {
+          throw new Error("Signer constraint missing authority field");
+        }
+        const authorityPubkey = this.normalizePublicKey(constraint.Signer.authority);
         const chunk = new Uint8Array(33);
         chunk[0] = 0;
         chunk.set(authorityPubkey.toBytes(), 1);
         chunks.push(chunk);
       } else if ("CustomSeeds" in constraint) {
         // Variant tag 1 + seed bytes
+        if (!constraint.CustomSeeds?.seeds) {
+          throw new Error("CustomSeeds constraint missing seeds field");
+        }
         const seedBytes = new Uint8Array(constraint.CustomSeeds.seeds);
         const chunk = new Uint8Array(1 + seedBytes.length);
         chunk[0] = 1;
@@ -240,7 +271,13 @@ export class ForgeClient {
         chunks.push(chunk);
       } else if ("TokenMint" in constraint) {
         // Variant tag 2 + mint (32 bytes) + amount (8 bytes)
-        const mint = new PublicKey(constraint.TokenMint.mint);
+        if (!constraint.TokenMint?.mint) {
+          throw new Error("TokenMint constraint missing mint field");
+        }
+        if (constraint.TokenMint.amount === undefined || constraint.TokenMint.amount === null) {
+          throw new Error("TokenMint constraint missing amount field");
+        }
+        const mint = this.normalizePublicKey(constraint.TokenMint.mint);
         const amount = BigInt(constraint.TokenMint.amount);
         const chunk = new Uint8Array(41);
         chunk[0] = 2;
@@ -253,14 +290,23 @@ export class ForgeClient {
         chunks.push(chunk);
       } else if ("CollectionNft" in constraint) {
         // Variant tag 3 + collection_mint (32 bytes)
-        const collectionMint = new PublicKey(constraint.CollectionNft.collectionMint);
+        if (!constraint.CollectionNft?.collectionMint) {
+          throw new Error("CollectionNft constraint missing collectionMint field");
+        }
+        const collectionMint = this.normalizePublicKey(constraint.CollectionNft.collectionMint);
         const chunk = new Uint8Array(33);
         chunk[0] = 3;
         chunk.set(collectionMint.toBytes(), 1);
         chunks.push(chunk);
       } else if ("Allowlist" in constraint) {
         // Variant tag 4 + merkle_root (32 bytes)
+        if (!constraint.Allowlist?.merkleRoot) {
+          throw new Error("Allowlist constraint missing merkleRoot field");
+        }
         const merkleRoot = new Uint8Array(constraint.Allowlist.merkleRoot);
+        if (merkleRoot.length !== 32) {
+          throw new Error(`Allowlist merkleRoot must be 32 bytes, got ${merkleRoot.length}`);
+        }
         const chunk = new Uint8Array(33);
         chunk[0] = 4;
         chunk.set(merkleRoot, 1);
