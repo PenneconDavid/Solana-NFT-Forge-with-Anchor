@@ -69,7 +69,7 @@ type MinimalWallet = {
 export default function MintPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, disconnect } = useWallet();
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const { setVisible } = useWalletModal();
@@ -126,7 +126,26 @@ export default function MintPage() {
 
         // Use deployed devnet authority as default if not specified
         // This allows the frontend to work out-of-the-box with the deployed forge
-        const authorityStr = process.env.NEXT_PUBLIC_FORGE_AUTHORITY || "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
+        const DEFAULT_FORGE_AUTHORITY = "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
+        const envAuthority = process.env.NEXT_PUBLIC_FORGE_AUTHORITY;
+        
+        // Validate environment variable if provided, otherwise use default
+        let authorityStr: string;
+        if (envAuthority && envAuthority.trim().length > 0) {
+          // Validate the env var is a valid public key
+          try {
+            new PublicKey(envAuthority.trim());
+            authorityStr = envAuthority.trim();
+            console.log("Using FORGE_AUTHORITY from environment:", authorityStr);
+          } catch (err) {
+            console.warn(`Invalid NEXT_PUBLIC_FORGE_AUTHORITY env var: "${envAuthority}". Using default.`, err);
+            authorityStr = DEFAULT_FORGE_AUTHORITY;
+          }
+        } else {
+          authorityStr = DEFAULT_FORGE_AUTHORITY;
+          console.log("Using default FORGE_AUTHORITY:", authorityStr);
+        }
+        
         let forgeAuthority: PublicKey;
         try {
           forgeAuthority = new PublicKey(authorityStr);
@@ -263,7 +282,22 @@ export default function MintPage() {
 
     try {
       // Use deployed devnet authority as default if not specified
-      const authorityStr = process.env.NEXT_PUBLIC_FORGE_AUTHORITY || "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
+      const DEFAULT_FORGE_AUTHORITY = "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
+      const envAuthority = process.env.NEXT_PUBLIC_FORGE_AUTHORITY;
+      
+      // Validate environment variable if provided, otherwise use default
+      let authorityStr: string;
+      if (envAuthority && envAuthority.trim().length > 0) {
+        try {
+          new PublicKey(envAuthority.trim());
+          authorityStr = envAuthority.trim();
+        } catch {
+          authorityStr = DEFAULT_FORGE_AUTHORITY;
+        }
+      } else {
+        authorityStr = DEFAULT_FORGE_AUTHORITY;
+      }
+      
       let forgeAuthority: PublicKey;
       try {
         forgeAuthority = new PublicKey(authorityStr);
@@ -374,8 +408,19 @@ export default function MintPage() {
           ) : (
             <div className="space-y-4">
               <div className="neu-ghost p-4">
-                <p className="text-sm text-[var(--text-muted)] mb-2">Connected Wallet:</p>
-                <p className="font-mono text-xs text-[var(--text)] break-all">{publicKey?.toString()}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <p className="text-sm text-[var(--text-muted)] mb-2">Connected Wallet:</p>
+                    <p className="font-mono text-xs text-[var(--text)] break-all">{publicKey?.toString()}</p>
+                  </div>
+                  <button
+                    onClick={() => disconnect()}
+                    className="px-3 py-1.5 text-xs rounded-lg border border-[rgba(255,127,111,0.3)] text-[var(--accent-secondary)] hover:bg-[rgba(255,127,111,0.1)] hover:border-[rgba(255,127,111,0.5)] transition"
+                    title="Disconnect wallet"
+                  >
+                    Disconnect
+                  </button>
+                </div>
               </div>
 
               {!anchorWallet && (
