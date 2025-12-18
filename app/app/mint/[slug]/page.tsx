@@ -324,18 +324,39 @@ export default function MintPage() {
 
       // Compute input hash
       const inputHash = await client.computeInputHash(ingredientChunks);
-      // Convert Uint8Array to number[] for Anchor (Rust expects [u8; 32])
-      const inputHashArray = Array.from(inputHash) as number[];
       
       // Validate input hash is 32 bytes
-      if (inputHashArray.length !== 32) {
-        throw new Error(`Invalid input hash length: expected 32 bytes, got ${inputHashArray.length}`);
+      if (inputHash.length !== 32) {
+        throw new Error(`Invalid input hash length: expected 32 bytes, got ${inputHash.length}`);
       }
+      
+      // Anchor accepts both Uint8Array and number[] for [u8; 32] arrays
+      // Use Uint8Array directly to match the working script pattern
+      const inputHashForArgs = inputHash;
 
       // Derive PDAs
       const [forgeConfigPDA] = client.deriveForgeConfigPDA(forgeAuthority);
       const [recipePDA] = client.deriveRecipePDA(forgeConfigPDA, recipe.slug, recipe.version);
       const [recipeUsePDA] = client.deriveRecipeUsePDA(recipePDA, inputHash);
+      
+      // Verify recipe exists and is active before attempting to forge
+      try {
+        const recipeAccount = await client.program.account.recipe.fetch(recipePDA);
+        console.log("Recipe account fetched:", {
+          status: JSON.stringify(recipeAccount.status),
+          minted: recipeAccount.minted?.toString(),
+          supplyCap: recipeAccount.supplyCap?.toString(),
+        });
+        
+        // Check if recipe is active
+        const status = recipeAccount.status as { active?: unknown } | { paused?: unknown } | { draft?: unknown } | { retired?: unknown };
+        if ("retired" in status || ("paused" in status && status.paused)) {
+          throw new Error("Recipe is not active. Cannot forge with a paused or retired recipe.");
+        }
+      } catch (fetchErr) {
+        console.error("Error fetching recipe account:", fetchErr);
+        throw new Error(`Failed to fetch recipe account. Recipe may not exist or may not be accessible. ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`);
+      }
 
       // Mint + Token Metadata PDAs
       const mintKeypair = Keypair.generate();
@@ -348,16 +369,22 @@ export default function MintPage() {
 
       // Build transaction builder
       // Note: Anchor automatically converts camelCase (inputHash) to snake_case (input_hash) for Rust
-      // inputHashArray is a 32-byte array (number[]) matching [u8; 32] in Rust
+      // Use Uint8Array directly to match the working script pattern (Anchor accepts both Uint8Array and number[])
       console.log("Building forge transaction...");
       const inputHashHex = Array.from(inputHash)
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
       console.log("Input hash:", inputHashHex);
       console.log("Mint keypair:", mintKeypair.publicKey.toBase58());
+      console.log("Input hash type:", inputHash.constructor.name);
+      console.log("Input hash length:", inputHash.length);
+      
+      // Build args exactly like the working script: { inputHash: Uint8Array }
+      const args = { inputHash: inputHashForArgs };
+      console.log("Transaction args:", { inputHashLength: args.inputHash.length });
       
       const txBuilder = client.program.methods
-        .forgeAsset({ inputHash: inputHashArray })
+        .forgeAsset(args)
         .accounts({
           forgeConfig: forgeConfigPDA,
           recipe: recipePDA,
@@ -376,7 +403,7 @@ export default function MintPage() {
         .remainingAccounts(remainingAccounts)
         .signers([mintKeypair]);
 
-      // Send transaction directly
+      // Send transaction directly (matching the working script pattern)
       // Note: Simulation (.simulate()) doesn't work reliably in browser with wallet adapters
       // Balance check above ensures we have enough SOL for rent and fees
       console.log("Sending forge transaction...");
@@ -386,9 +413,23 @@ export default function MintPage() {
         recipeUse: recipeUsePDA.toBase58(),
         forger: publicKey.toBase58(),
         mint: mintKeypair.publicKey.toBase58(),
+        mintAta: mintAta.toBase58(),
+        metadata: metadata.toBase58(),
+        masterEdition: masterEdition.toBase58(),
       });
       
+      // Build transaction first to inspect it
+      const transaction = await txBuilder.transaction();
+      console.log("Transaction built:", {
+        instructions: transaction.instructions.length,
+        signers: transaction.signers.length,
+        recentBlockhash: transaction.recentBlockhash?.toString(),
+      });
+      
+      // Send transaction
+      console.log("Calling .rpc()...");
       const sig = await txBuilder.rpc();
+      console.log("Transaction sent successfully:", sig);
 
       setSuccess(`Forged successfully. Signature: ${sig}\nMint: ${mintKeypair.publicKey.toBase58()}`);
     } catch (error: unknown) {
