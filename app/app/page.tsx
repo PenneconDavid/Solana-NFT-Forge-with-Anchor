@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 export default function HomePage() {
-  const { connected } = useWallet();
+  const { connected, publicKey, disconnect } = useWallet();
+  const { connection } = useConnection();
 
   return (
     <div className="min-h-screen text-[var(--text)]">
@@ -36,6 +37,15 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap justify-center gap-4 items-center">
               <WalletMultiButton className="!bg-[var(--accent-primary)] !text-[#0b0f0b] !font-semibold !px-5 !py-3 !rounded-xl btn-glow" />
+              {connected && (
+                <button
+                  onClick={() => disconnect()}
+                  className="px-4 py-3 rounded-xl border border-[rgba(255,127,111,0.3)] text-[var(--accent-secondary)] hover:bg-[rgba(255,127,111,0.1)] hover:border-[rgba(255,127,111,0.5)] transition font-semibold"
+                  title="Disconnect wallet"
+                >
+                  Disconnect
+                </button>
+              )}
               <Link
                 href="/mint/iron-sword"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[rgba(255,255,255,0.08)] text-[var(--accent-tertiary)] hover:text-[var(--accent-secondary)] transition"

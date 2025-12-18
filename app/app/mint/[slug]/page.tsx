@@ -281,6 +281,17 @@ export default function MintPage() {
     setSuccess(null);
 
     try {
+      // Check wallet balance first - need at least 0.01 SOL for rent + fees
+      const balance = await connection.getBalance(publicKey);
+      const minBalance = 0.01 * 1e9; // 0.01 SOL in lamports
+      if (balance < minBalance) {
+        const balanceSOL = (balance / 1e9).toFixed(4);
+        throw new Error(
+          `Insufficient SOL balance. You have ${balanceSOL} SOL, but need at least 0.01 SOL for rent and transaction fees. ` +
+          `On devnet, you can get free SOL from the faucet: https://faucet.solana.com`
+        );
+      }
+
       // Use deployed devnet authority as default if not specified
       const DEFAULT_FORGE_AUTHORITY = "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
       const envAuthority = process.env.NEXT_PUBLIC_FORGE_AUTHORITY;
@@ -329,7 +340,8 @@ export default function MintPage() {
       // For the first “portfolio proof” recipe we recommend zero ingredients:
       const remainingAccounts: { pubkey: PublicKey; isSigner: boolean; isWritable: boolean }[] = [];
 
-      const sig = await client.program.methods
+      // Build transaction builder
+      const txBuilder = client.program.methods
         .forgeAsset({ inputHash: inputHashArray })
         .accounts({
           forgeConfig: forgeConfigPDA,
@@ -347,14 +359,58 @@ export default function MintPage() {
           systemProgram: SystemProgram.programId,
         })
         .remainingAccounts(remainingAccounts)
-        .signers([mintKeypair])
-        .rpc();
+        .signers([mintKeypair]);
+
+      // Simulate first to catch errors early
+      try {
+        const simulation = await txBuilder.simulate();
+        console.log("Transaction simulation successful:", simulation);
+      } catch (simError: unknown) {
+        console.error("Transaction simulation failed:", simError);
+        // Extract more details from simulation error
+        if (simError && typeof simError === "object" && "logs" in simError) {
+          const logs = (simError as { logs?: string[] }).logs || [];
+          const logMessage = logs.length > 0 ? `\n\nTransaction logs:\n${logs.join("\n")}` : "";
+          throw new Error(
+            `Transaction simulation failed. This usually means insufficient SOL for rent or account creation. ` +
+            `Please ensure you have at least 0.01 SOL in your wallet.${logMessage}`
+          );
+        }
+        throw simError;
+      }
+
+      // Send transaction
+      const sig = await txBuilder.rpc();
 
       setSuccess(`Forged successfully. Signature: ${sig}\nMint: ${mintKeypair.publicKey.toBase58()}`);
     } catch (error: unknown) {
       console.error("Error forging:", error);
-      const message = error instanceof Error ? error.message : "Unknown error";
-      setError(`Error: ${message}`);
+      
+      // Handle Anchor SendTransactionError
+      if (error && typeof error === "object" && "logs" in error) {
+        const anchorError = error as { logs?: string[]; message?: string };
+        const logs = anchorError.logs || [];
+        const logMessage = logs.length > 0 ? `\n\nTransaction logs:\n${logs.slice(0, 10).join("\n")}` : "";
+        const message = anchorError.message || "Transaction failed";
+        
+        // Check for common errors
+        if (message.includes("Attempt to debit an account but found no record of a prior credit")) {
+          setError(
+            `Insufficient SOL balance. You need SOL to pay for rent and transaction fees. ` +
+            `On devnet, get free SOL from: https://faucet.solana.com${logMessage}`
+          );
+        } else if (message.includes("insufficient funds")) {
+          setError(
+            `Insufficient SOL balance. Please ensure you have at least 0.01 SOL in your wallet. ` +
+            `On devnet, get free SOL from: https://faucet.solana.com${logMessage}`
+          );
+        } else {
+          setError(`Transaction failed: ${message}${logMessage}`);
+        }
+      } else {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        setError(`Error: ${message}`);
+      }
     } finally {
       setForging(false);
     }
