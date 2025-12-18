@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useWallet, useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
-import { Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, ComputeBudgetProgram } from "@solana/web3.js";
 import { ForgeClient, createForgeClient } from "@/lib/forgeClient";
 import { useParams } from "next/navigation";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
@@ -435,6 +435,16 @@ export default function MintPage() {
       const args = { inputHash: inputHashForArgs };
       console.log("Transaction args:", { inputHashLength: args.inputHash.length });
       
+      // Add compute budget instructions to prevent CU exhaustion
+      // NFT minting with metadata requires more than the default 200,000 CUs
+      const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 400000, // Request 400k CUs (double the default)
+      });
+      
+      const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 1, // Small priority fee to help with transaction processing
+      });
+      
       const txBuilder = client.program.methods
         .forgeAsset(args)
         .accounts({
@@ -453,6 +463,7 @@ export default function MintPage() {
           systemProgram: SystemProgram.programId,
         })
         .remainingAccounts(remainingAccounts)
+        .preInstructions([addPriorityFee, modifyComputeUnits]) // Add compute budget before forge instruction
         .signers([mintKeypair]);
 
       // Send transaction directly (matching the working script pattern)

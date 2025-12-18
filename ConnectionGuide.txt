@@ -49,3 +49,8 @@ CLI Script Endpoints
 - Devnet recipe creation: Set CLUSTER=devnet and SOLANA_RPC_URL=https://api.devnet.solana.com before running scripts
 - Example: $env:CLUSTER="devnet"; $env:SOLANA_RPC_URL="https://api.devnet.solana.com"; npm run create-recipe -- -s iron-sword -v 2 -k one-of-one -u "https://..." --status active
 
+Transaction Configuration
+- Compute Budget: Forge transactions include Compute Budget Program instructions to request 400,000 compute units (double the default 200k) to prevent CU exhaustion during NFT minting with metadata
+- Priority Fee: Transactions include a small priority fee (1 microLamport) to help with transaction processing
+- Implementation: Compute budget instructions are added via `.preInstructions()` in both frontend (app/app/mint/[slug]/page.tsx) and CLI scripts (scripts/src/forge-asset.ts)
+

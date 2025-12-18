@@ -6,6 +6,7 @@ import {
   PublicKey,
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
+  ComputeBudgetProgram,
 } from "@solana/web3.js";
 import { Command } from "commander";
 import * as crypto from "crypto";
@@ -178,6 +179,16 @@ program
       // Build instruction args: Anchor expects [u8;32] as number[] or Uint8Array.
       const args = { inputHash };
 
+      // Add compute budget instructions to prevent CU exhaustion
+      // NFT minting with metadata requires more than the default 200,000 CUs
+      const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 400000, // Request 400k CUs (double the default)
+      });
+      
+      const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 1, // Small priority fee to help with transaction processing
+      });
+
       // Build and send
       const builder = forgeProgram.methods
         .forgeAsset(args)
@@ -197,6 +208,7 @@ program
           systemProgram: SystemProgram.programId,
         })
         .remainingAccounts([]) // ingredient accounts only; empty for 0-constraint recipes
+        .preInstructions([addPriorityFee, modifyComputeUnits]) // Add compute budget before forge instruction
         .signers([mint]);
 
       if (options.dryRun) {
