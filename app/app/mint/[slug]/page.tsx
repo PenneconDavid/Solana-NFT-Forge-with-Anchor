@@ -324,7 +324,13 @@ export default function MintPage() {
 
       // Compute input hash
       const inputHash = await client.computeInputHash(ingredientChunks);
+      // Convert Uint8Array to number[] for Anchor (Rust expects [u8; 32])
       const inputHashArray = Array.from(inputHash) as number[];
+      
+      // Validate input hash is 32 bytes
+      if (inputHashArray.length !== 32) {
+        throw new Error(`Invalid input hash length: expected 32 bytes, got ${inputHashArray.length}`);
+      }
 
       // Derive PDAs
       const [forgeConfigPDA] = client.deriveForgeConfigPDA(forgeAuthority);
@@ -341,6 +347,15 @@ export default function MintPage() {
       const remainingAccounts: { pubkey: PublicKey; isSigner: boolean; isWritable: boolean }[] = [];
 
       // Build transaction builder
+      // Note: Anchor automatically converts camelCase (inputHash) to snake_case (input_hash) for Rust
+      // inputHashArray is a 32-byte array (number[]) matching [u8; 32] in Rust
+      console.log("Building forge transaction...");
+      const inputHashHex = Array.from(inputHash)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      console.log("Input hash:", inputHashHex);
+      console.log("Mint keypair:", mintKeypair.publicKey.toBase58());
+      
       const txBuilder = client.program.methods
         .forgeAsset({ inputHash: inputHashArray })
         .accounts({
@@ -361,48 +376,45 @@ export default function MintPage() {
         .remainingAccounts(remainingAccounts)
         .signers([mintKeypair]);
 
-      // Simulate first to catch errors early
-      try {
-        const simulation = await txBuilder.simulate();
-        console.log("Transaction simulation successful:", simulation);
-      } catch (simError: unknown) {
-        console.error("Transaction simulation failed:", simError);
-        // Extract more details from simulation error
-        if (simError && typeof simError === "object" && "logs" in simError) {
-          const logs = (simError as { logs?: string[] }).logs || [];
-          const logMessage = logs.length > 0 ? `\n\nTransaction logs:\n${logs.join("\n")}` : "";
-          throw new Error(
-            `Transaction simulation failed. This usually means insufficient SOL for rent or account creation. ` +
-            `Please ensure you have at least 0.01 SOL in your wallet.${logMessage}`
-          );
-        }
-        throw simError;
-      }
-
-      // Send transaction
+      // Send transaction directly
+      // Note: Simulation (.simulate()) doesn't work reliably in browser with wallet adapters
+      // Balance check above ensures we have enough SOL for rent and fees
+      console.log("Sending forge transaction...");
+      console.log("Transaction accounts:", {
+        forgeConfig: forgeConfigPDA.toBase58(),
+        recipe: recipePDA.toBase58(),
+        recipeUse: recipeUsePDA.toBase58(),
+        forger: publicKey.toBase58(),
+        mint: mintKeypair.publicKey.toBase58(),
+      });
+      
       const sig = await txBuilder.rpc();
 
       setSuccess(`Forged successfully. Signature: ${sig}\nMint: ${mintKeypair.publicKey.toBase58()}`);
     } catch (error: unknown) {
       console.error("Error forging:", error);
+      console.error("Error type:", typeof error);
+      console.error("Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
       
       // Handle Anchor SendTransactionError
-      if (error && typeof error === "object" && "logs" in error) {
-        const anchorError = error as { logs?: string[]; message?: string };
+      if (error && typeof error === "object") {
+        const anchorError = error as { logs?: string[]; message?: string; [key: string]: unknown };
         const logs = anchorError.logs || [];
-        const logMessage = logs.length > 0 ? `\n\nTransaction logs:\n${logs.slice(0, 10).join("\n")}` : "";
+        const logMessage = logs.length > 0 ? `\n\nTransaction logs:\n${logs.slice(0, 20).join("\n")}` : "";
         const message = anchorError.message || "Transaction failed";
         
         // Check for common errors
-        if (message.includes("Attempt to debit an account but found no record of a prior credit")) {
+        if (message.includes("Attempt to debit an account but found no record of a prior credit") || 
+            message.includes("insufficient funds")) {
           setError(
             `Insufficient SOL balance. You need SOL to pay for rent and transaction fees. ` +
+            `Current balance check passed, but transaction failed. ` +
             `On devnet, get free SOL from: https://faucet.solana.com${logMessage}`
           );
-        } else if (message.includes("insufficient funds")) {
+        } else if (message.includes("Unknown action") || message.includes("undefined")) {
           setError(
-            `Insufficient SOL balance. Please ensure you have at least 0.01 SOL in your wallet. ` +
-            `On devnet, get free SOL from: https://faucet.solana.com${logMessage}`
+            `Transaction building error. This may be a temporary issue. ` +
+            `Please try again or refresh the page. If the issue persists, check the browser console for details.${logMessage}`
           );
         } else {
           setError(`Transaction failed: ${message}${logMessage}`);
@@ -441,13 +453,17 @@ export default function MintPage() {
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <h2 className="text-xl font-semibold">Recipe: {slug}</h2>
-              <p className="text-sm text-[var(--text-muted)]">
-                Step 1: Connect your Phantom wallet using the button below
-                <br />
-                Step 2: Review ingredient requirements (if any) in the section below
-                <br />
-                Step 3: Click "Forge Asset" to mint your NFT
-              </p>
+            <p className="text-sm text-[var(--text-muted)]">
+              Step 1: Connect your Phantom wallet using the button below
+              <br />
+              Step 2: Review ingredient requirements (if any) in the section below
+              <br />
+              Step 3: Click "Forge Asset" to mint your NFT
+              <br />
+              <span className="text-xs mt-2 block">
+                ⚠️ <strong>Note:</strong> Phantom may show security warnings for new domains. These are normal and will disappear after Phantom reviews the domain. Always verify you're on the correct website before connecting your wallet.
+              </span>
+            </p>
             </div>
             <span className="px-3 py-1 text-xs rounded-full border border-[rgba(255,255,255,0.1)] text-[var(--accent-tertiary)]">
               Cluster-aware
@@ -489,7 +505,20 @@ export default function MintPage() {
 
               {error && (
                 <div className="neu-ghost p-4 border border-[rgba(255,127,111,0.45)]">
-                  <p className="text-sm text-[var(--accent-secondary)]">{error}</p>
+                  <p className="text-sm text-[var(--accent-secondary)] whitespace-pre-wrap">{error}</p>
+                  {error.includes("insufficient") && (
+                    <p className="text-xs text-[var(--text-muted)] mt-2">
+                      💡 <strong>Tip:</strong> Get free devnet SOL from{" "}
+                      <a
+                        href="https://faucet.solana.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--accent-primary)] underline"
+                      >
+                        https://faucet.solana.com
+                      </a>
+                    </p>
+                  )}
                 </div>
               )}
 
