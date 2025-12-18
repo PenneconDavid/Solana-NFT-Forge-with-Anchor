@@ -127,7 +127,12 @@ export default function MintPage() {
         // Use deployed devnet authority as default if not specified
         // This allows the frontend to work out-of-the-box with the deployed forge
         const authorityStr = process.env.NEXT_PUBLIC_FORGE_AUTHORITY || "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
-        const forgeAuthority = new PublicKey(authorityStr);
+        let forgeAuthority: PublicKey;
+        try {
+          forgeAuthority = new PublicKey(authorityStr);
+        } catch (err) {
+          throw new Error(`Invalid FORGE_AUTHORITY: "${authorityStr}". ${err instanceof Error ? err.message : String(err)}`);
+        }
         const [forgeConfigPDA] = forgeClient.deriveForgeConfigPDA(forgeAuthority);
         
         try {
@@ -135,7 +140,84 @@ export default function MintPage() {
           setForgeConfig(config);
           
           // Fetch recipe
-          const recipeData = (await forgeClient.fetchRecipe(forgeConfigPDA, slug, 1)) as Recipe;
+          let recipeData: Recipe;
+          try {
+            recipeData = (await forgeClient.fetchRecipe(forgeConfigPDA, slug, 1)) as Recipe;
+          } catch (fetchErr) {
+            console.error("Error fetching recipe from chain:", fetchErr);
+            throw fetchErr;
+          }
+          
+          // Validate and normalize recipe data to handle PublicKey objects from Anchor deserialization
+          if (recipeData.ingredientConstraints && Array.isArray(recipeData.ingredientConstraints)) {
+            try {
+              recipeData.ingredientConstraints = recipeData.ingredientConstraints.map((constraint: Constraint, idx: number) => {
+                try {
+                  // Normalize any PublicKey objects to strings for consistent handling
+                  if (constraint.Signer?.authority) {
+                    const authority = constraint.Signer.authority;
+                    if (authority instanceof PublicKey) {
+                      return { ...constraint, Signer: { authority: authority.toBase58() } };
+                    } else if (typeof authority === "string") {
+                      // Validate it's a valid public key string
+                      try {
+                        new PublicKey(authority);
+                        return constraint; // Already a valid string
+                      } catch {
+                        console.warn(`Invalid authority string in Signer constraint ${idx}:`, authority);
+                        return constraint; // Keep as-is, will fail later if used
+                      }
+                    } else {
+                      console.warn(`Unexpected authority type in Signer constraint ${idx}:`, typeof authority, authority);
+                      return constraint;
+                    }
+                  }
+                  if (constraint.TokenMint?.mint) {
+                    const mint = constraint.TokenMint.mint;
+                    if (mint instanceof PublicKey) {
+                      return { ...constraint, TokenMint: { ...constraint.TokenMint, mint: mint.toBase58() } };
+                    } else if (typeof mint === "string") {
+                      try {
+                        new PublicKey(mint);
+                        return constraint;
+                      } catch {
+                        console.warn(`Invalid mint string in TokenMint constraint ${idx}:`, mint);
+                        return constraint;
+                      }
+                    } else {
+                      console.warn(`Unexpected mint type in TokenMint constraint ${idx}:`, typeof mint, mint);
+                      return constraint;
+                    }
+                  }
+                  if (constraint.CollectionNft?.collectionMint) {
+                    const collectionMint = constraint.CollectionNft.collectionMint;
+                    if (collectionMint instanceof PublicKey) {
+                      return { ...constraint, CollectionNft: { collectionMint: collectionMint.toBase58() } };
+                    } else if (typeof collectionMint === "string") {
+                      try {
+                        new PublicKey(collectionMint);
+                        return constraint;
+                      } catch {
+                        console.warn(`Invalid collectionMint string in CollectionNft constraint ${idx}:`, collectionMint);
+                        return constraint;
+                      }
+                    } else {
+                      console.warn(`Unexpected collectionMint type in CollectionNft constraint ${idx}:`, typeof collectionMint, collectionMint);
+                      return constraint;
+                    }
+                  }
+                  return constraint;
+                } catch (constraintErr) {
+                  console.error(`Error processing constraint ${idx}:`, constraintErr, constraint);
+                  throw constraintErr;
+                }
+              });
+            } catch (normalizeErr) {
+              console.error("Error normalizing ingredient constraints:", normalizeErr);
+              // Continue anyway - the constraints might still be usable
+            }
+          }
+          
           setRecipe(recipeData);
         } catch (err) {
           console.warn("Could not fetch recipe:", err);
@@ -143,6 +225,19 @@ export default function MintPage() {
         }
       } catch (err) {
         console.error("Error loading recipe:", err);
+        // Log detailed error information for debugging
+        if (err instanceof Error) {
+          console.error("Error name:", err.name);
+          console.error("Error message:", err.message);
+          console.error("Error stack:", err.stack);
+          // Check if it's a PublicKey error
+          if (err.message.includes("Invalid public key") || err.message.includes("InvalidPublicKey")) {
+            console.error("This appears to be a PublicKey validation error. Check:");
+            console.error("1. NEXT_PUBLIC_FORGE_AUTHORITY environment variable");
+            console.error("2. Recipe ingredient constraints on-chain");
+            console.error("3. ForgeConfig account data");
+          }
+        }
         setError(err instanceof Error ? err.message : "Failed to load recipe");
       } finally {
         setLoading(false);
@@ -169,7 +264,12 @@ export default function MintPage() {
     try {
       // Use deployed devnet authority as default if not specified
       const authorityStr = process.env.NEXT_PUBLIC_FORGE_AUTHORITY || "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
-      const forgeAuthority = new PublicKey(authorityStr);
+      let forgeAuthority: PublicKey;
+      try {
+        forgeAuthority = new PublicKey(authorityStr);
+      } catch (err) {
+        throw new Error(`Invalid FORGE_AUTHORITY: "${authorityStr}". ${err instanceof Error ? err.message : String(err)}`);
+      }
 
       // Build ingredient hash chunks
       const constraintsForHash = (recipe.ingredientConstraints || []) as Parameters<
