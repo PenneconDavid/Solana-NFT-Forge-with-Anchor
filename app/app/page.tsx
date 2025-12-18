@@ -64,7 +64,8 @@ export default function HomePage() {
                 Program: BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
               </div>
               <div className="text-sm text-[var(--text-muted)]">
-                Recipe <span className="font-mono text-[var(--accent-secondary)]">iron-sword</span> (v1) is active on devnet.
+                Recipe <span className="font-mono text-[var(--accent-secondary)]">iron-sword</span> (v2) is active on devnet.
+                <span className="text-xs block mt-1 opacity-75">v1 already forged (1 mint). Frontend auto-selects latest version.</span>
               </div>
             </div>
             <Link

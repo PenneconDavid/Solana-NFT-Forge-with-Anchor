@@ -1,6 +1,6 @@
 ### Solana “NFT Forge” with Anchor — Vision + Status (single source of truth)
 
-**Last updated**: 2025-12-14
+**Last updated**: 2025-12-18
 
 ### Status snapshot (where we are right now)
 - **Public-ready**: ✅ Framework no longer tied to single wallet; frontend defaults to deployed devnet forge authority
@@ -10,7 +10,8 @@
   - IDL account: `5icFcScscSR7XBBCtKz6ipPc63QRkmLYYpvfpeL2UDSm`
   - Forge initialized: `AijiehS47c9CdZhCp2swXTdWg8LmBkqM25u4DS1kiYVE`
   - Forge Authority: `Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA` (defaults in frontend)
-  - Recipe (active): slug `iron-sword`, v1, PDA `7vhHcp7GmLe7ypbvA2tztB4QH6que6GhwB35KMzjqj6Z`
+  - Recipe (active): slug `iron-sword`, v1, PDA `7vhHcp7GmLe7ypbvA2tztB4QH6que6GhwB35KMzjqj6Z` (v1 already forged - 1 mint)
+  - Recipe (active): slug `iron-sword`, v2, PDA `9GQK1Q3MjuQK6A7upamhZmiw4YqUS2W8pSaBSvVVKwFr` (created 2025-12-18, ready for forging)
   - Forge tx: `GEsmRwLGMkuPAcjGLi4obV5UZ45PWyCxoKoBrKJC8WGRFv4ycc7mpHwzhvTfZ5PZDiUYB5XoavNy8FFq87HtuKm`
   - Mint: `96V7rQjb48r28NySW7h3N3ZunncCZZP5KfAgCWvac8rz`
 - **Localnet proof (historical)**: tx `2pN5G8DRdQShkgwgJkdbYU913RLAX6KzGZp9Rstszmmj2hfcLUM7fsJeLJ4kV8c1MxS3V1Gv1QEi8nwKX4hV2DHG`.

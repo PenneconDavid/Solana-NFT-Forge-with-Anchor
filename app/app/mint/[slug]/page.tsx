@@ -158,13 +158,30 @@ export default function MintPage() {
           const config = (await forgeClient.fetchForgeConfig(forgeAuthority)) as ForgeConfigType;
           setForgeConfig(config);
           
-          // Fetch recipe
-          let recipeData: Recipe;
+          // Fetch recipe - try version 2 first (latest), fallback to version 1
+          let recipeData: Recipe | null = null;
+          let loadedVersion = 2;
           try {
-            recipeData = (await forgeClient.fetchRecipe(forgeConfigPDA, slug, 1)) as Recipe;
-          } catch (fetchErr) {
-            console.error("Error fetching recipe from chain:", fetchErr);
-            throw fetchErr;
+            recipeData = (await forgeClient.fetchRecipe(forgeConfigPDA, slug, loadedVersion)) as Recipe;
+            console.log(`Loaded recipe ${slug} version ${loadedVersion}`);
+            // Ensure the recipe data has the correct version
+            recipeData.version = loadedVersion;
+          } catch (err) {
+            console.log(`Recipe ${slug} version ${loadedVersion} not found, trying version 1...`);
+            try {
+              loadedVersion = 1;
+              recipeData = (await forgeClient.fetchRecipe(forgeConfigPDA, slug, loadedVersion)) as Recipe;
+              console.log(`Loaded recipe ${slug} version ${loadedVersion}`);
+              // Ensure the recipe data has the correct version
+              recipeData.version = loadedVersion;
+            } catch (err2) {
+              console.error("Error fetching recipe:", err2);
+              throw err2;
+            }
+          }
+          
+          if (!recipeData) {
+            throw new Error(`Recipe ${slug} not found (tried versions 2 and 1)`);
           }
           
           // Validate and normalize recipe data to handle PublicKey objects from Anchor deserialization
@@ -336,8 +353,39 @@ export default function MintPage() {
 
       // Derive PDAs
       const [forgeConfigPDA] = client.deriveForgeConfigPDA(forgeAuthority);
-      const [recipePDA] = client.deriveRecipePDA(forgeConfigPDA, recipe.slug, recipe.version);
+      // Use the recipe version from the loaded recipe data
+      const recipeVersion = recipe.version || 2; // Should be set from loadRecipe above
+      console.log(`Using recipe version ${recipeVersion} for forging`);
+      const [recipePDA] = client.deriveRecipePDA(forgeConfigPDA, recipe.slug, recipeVersion);
       const [recipeUsePDA] = client.deriveRecipeUsePDA(recipePDA, inputHash);
+      
+      // Check if RecipeUse already exists (anti-replay protection)
+      // For 0-ingredient recipes, everyone uses the same input hash, so only one forge is possible
+      console.log("Checking if RecipeUse already exists at:", recipeUsePDA.toBase58());
+      const accountInfo = await connection.getAccountInfo(recipeUsePDA);
+      
+      if (accountInfo && accountInfo.data.length > 0) {
+        console.log("RecipeUse account EXISTS - cannot forge again");
+        const ingredientCount = recipe.ingredientConstraints?.length || 0;
+        const mintedCount = typeof recipe.minted === "number" ? recipe.minted : 
+                           recipe.minted?.toString() ? parseInt(recipe.minted.toString()) : 0;
+        
+        if (ingredientCount === 0) {
+          throw new Error(
+            `This recipe has already been forged ${mintedCount} time(s). Recipes with no ingredient requirements can only be forged once ` +
+            `because everyone uses the same input hash (SHA256 of empty). ` +
+            `To allow multiple forges, create a new recipe version (e.g., v2) or add ingredient constraints that make each input unique.`
+          );
+        } else {
+          throw new Error(
+            `This specific combination of ingredients has already been used to forge an NFT. ` +
+            `Each unique ingredient combination can only be used once per recipe. ` +
+            `Try a different combination of ingredients.`
+          );
+        }
+      } else {
+        console.log("RecipeUse account does not exist - can proceed with forging");
+      }
       
       // Verify recipe exists and is active before attempting to forge
       // Note: Type assertion needed because Anchor's TypeScript types aren't fully inferred from IDL
@@ -457,6 +505,20 @@ export default function MintPage() {
             `Current balance check passed, but transaction failed. ` +
             `On devnet, get free SOL from: https://faucet.solana.com${logMessage}`
           );
+        } else if (message.includes("already in use") || logs.some(log => log.includes("already in use"))) {
+          const ingredientCount = recipe?.ingredientConstraints?.length || 0;
+          if (ingredientCount === 0) {
+            setError(
+              `This recipe has already been forged. Recipes with no ingredient requirements can only be forged once ` +
+              `because everyone uses the same input hash. The recipe shows ${recipe?.minted || 0} NFT(s) have already been minted. ` +
+              `To allow multiple forges, the recipe needs ingredient constraints that make each input hash unique.${logMessage}`
+            );
+          } else {
+            setError(
+              `This specific combination of ingredients has already been used to forge an NFT. ` +
+              `Each unique ingredient combination can only be used once per recipe.${logMessage}`
+            );
+          }
         } else if (message.includes("Unknown action") || message.includes("undefined")) {
           setError(
             `Transaction building error. This may be a temporary issue. ` +
@@ -636,9 +698,17 @@ export default function MintPage() {
                   <p className="text-sm font-semibold text-[var(--accent-primary)] mb-2">
                     ✓ No Ingredient Requirements
                   </p>
-                  <p className="text-sm text-[var(--text-muted)]">
+                  <p className="text-sm text-[var(--text-muted)] mb-2">
                     This recipe has no ingredient constraints. You can forge this asset immediately after connecting your wallet.
                   </p>
+                  {recipe.minted && (typeof recipe.minted === "number" ? recipe.minted > 0 : parseInt(recipe.minted.toString()) > 0) && (
+                    <div className="mt-2 p-2 bg-[rgba(255,200,87,0.1)] border border-[rgba(255,200,87,0.3)] rounded">
+                      <p className="text-xs text-[var(--accent-tertiary)]">
+                        ⚠️ <strong>Note:</strong> This recipe has already been forged. Recipes with no ingredients can only be forged once because everyone uses the same input hash. 
+                        To allow multiple forges, create a new recipe version or add ingredient constraints.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -25,13 +25,13 @@ External Services
 - Pinata JWT: Set via PINATA_JWT environment variable
 - Solana release downloads (toolchain): https://release.anza.xyz (used to fetch Solana CLI/SBF tarballs; Docker image installs “stable” and now uses solana-cli 3.0.13 / rustc 1.92.0)
 
-Vercel Deployment (planned)
-- Frontend URL: https://<pending>.vercel.app (set after deployment)
-- Env (public): NEXT_PUBLIC_CLUSTER=devnet
-- Env (public): NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
-- Env (public): NEXT_PUBLIC_FORGE_PROGRAM_ID=BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
-- Env (public): NEXT_PUBLIC_FORGE_AUTHORITY=Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA
-- Note: Minting disabled on Vercel until devnet program is actually deployed.
+Vercel Deployment
+- Frontend URL: https://solana-nft-forge.vercel.app
+- Env (public): NEXT_PUBLIC_CLUSTER=devnet (set in Vercel dashboard)
+- Env (public): NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com (set in Vercel dashboard)
+- Env (public): NEXT_PUBLIC_FORGE_PROGRAM_ID=BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN (set in Vercel dashboard)
+- Env (public): NEXT_PUBLIC_FORGE_AUTHORITY=Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA (optional - defaults in code if not set)
+- Note: Do NOT set NEXT_PUBLIC_FORGE_AUTHORITY in Vercel if it's truncated. The code will use the correct default.
 
 IDL Locations
 - Generated IDL: target/idl/forge.json
@@ -46,4 +46,6 @@ Developer Tool Paths
 CLI Script Endpoints
 - Scripts run from: scripts/ directory
 - Commands: npm run init-forge, create-recipe, toggle-recipe, forge-asset, forge-example
+- Devnet recipe creation: Set CLUSTER=devnet and SOLANA_RPC_URL=https://api.devnet.solana.com before running scripts
+- Example: $env:CLUSTER="devnet"; $env:SOLANA_RPC_URL="https://api.devnet.solana.com"; npm run create-recipe -- -s iron-sword -v 2 -k one-of-one -u "https://..." --status active
 
