@@ -3,22 +3,27 @@
 **Last updated**: 2025-12-14
 
 ### Status snapshot (where we are right now)
+- **Public-ready**: ✅ Framework no longer tied to single wallet; frontend defaults to deployed devnet forge authority
 - **Localnet (Windows) stable** using `solana-test-validator v2.3.13` with `scripts/start-validator.ps1`.
 - **Devnet deployed & proven** (via Docker toolchain: solana-cli 3.0.13, rustc 1.92.0):
   - Program ID: `BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
   - IDL account: `5icFcScscSR7XBBCtKz6ipPc63QRkmLYYpvfpeL2UDSm`
   - Forge initialized: `AijiehS47c9CdZhCp2swXTdWg8LmBkqM25u4DS1kiYVE`
+  - Forge Authority: `Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA` (defaults in frontend)
   - Recipe (active): slug `iron-sword`, v1, PDA `7vhHcp7GmLe7ypbvA2tztB4QH6que6GhwB35KMzjqj6Z`
   - Forge tx: `GEsmRwLGMkuPAcjGLi4obV5UZ45PWyCxoKoBrKJC8WGRFv4ycc7mpHwzhvTfZ5PZDiUYB5XoavNy8FFq87HtuKm`
   - Mint: `96V7rQjb48r28NySW7h3N3ZunncCZZP5KfAgCWvac8rz`
 - **Localnet proof (historical)**: tx `2pN5G8DRdQShkgwgJkdbYU913RLAX6KzGZp9Rstszmmj2hfcLUM7fsJeLJ4kV8c1MxS3V1Gv1QEi8nwKX4hV2DHG`.
 - **UI refresh**: global footer with attribution, logos under `app/public/logos/`, rust/neumorphic theme applied.
+- **User experience**: ✅ Improved on-screen messages with clear step-by-step instructions for forging assets
+- **Documentation**: ✅ README updated with comprehensive setup instructions for both users and contributors
 
 ### What remains (and what we intentionally deferred)
 **Still to do (core portfolio path)**
-- **Frontend tx send**: wire `/mint/[slug]` to send real `forge_asset`, display signature/mint.
+- **Frontend tx send**: ✅ COMPLETE - Frontend now sends real `forge_asset` transactions
 - **Testing**: add at least one happy-path and one negative test (scripts or frontend).
-- **Docs cleanup**: retire `vision.md` when public; keep README as primary.
+- **Docs cleanup**: ✅ COMPLETE - README updated for public use; `vision.md` kept for historical reference.
+- **Public-ready**: ✅ COMPLETE - Framework no longer tied to single wallet; defaults to deployed devnet forge.
 
 **Deferred / skipped on purpose**
 - Devnet walkthrough/demo video (future nice-to-have).

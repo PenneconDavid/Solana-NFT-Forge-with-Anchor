@@ -124,12 +124,9 @@ export default function MintPage() {
           }
         }
 
-        const authorityStr = process.env.NEXT_PUBLIC_FORGE_AUTHORITY;
-        if (!authorityStr) {
-          throw new Error(
-            "Missing NEXT_PUBLIC_FORGE_AUTHORITY. Set it to the pubkey that ran `npm run init-forge` (your forge authority)."
-          );
-        }
+        // Use deployed devnet authority as default if not specified
+        // This allows the frontend to work out-of-the-box with the deployed forge
+        const authorityStr = process.env.NEXT_PUBLIC_FORGE_AUTHORITY || "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
         const forgeAuthority = new PublicKey(authorityStr);
         const [forgeConfigPDA] = forgeClient.deriveForgeConfigPDA(forgeAuthority);
         
@@ -170,12 +167,8 @@ export default function MintPage() {
     setSuccess(null);
 
     try {
-      const authorityStr = process.env.NEXT_PUBLIC_FORGE_AUTHORITY;
-      if (!authorityStr) {
-        throw new Error(
-          "Missing NEXT_PUBLIC_FORGE_AUTHORITY. Set it to the pubkey that ran `npm run init-forge`."
-        );
-      }
+      // Use deployed devnet authority as default if not specified
+      const authorityStr = process.env.NEXT_PUBLIC_FORGE_AUTHORITY || "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
       const forgeAuthority = new PublicKey(authorityStr);
 
       // Build ingredient hash chunks
@@ -246,20 +239,24 @@ export default function MintPage() {
   return (
     <div className="min-h-screen text-[var(--text)]">
       <div className="container mx-auto px-4 py-10 max-w-2xl space-y-6">
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">Mint</p>
-          <h1 className="text-3xl font-semibold">Forge Asset</h1>
-          <p className="text-sm text-[var(--text-muted)]">
-            Neumorphic surfaces with nature accents. Ensure wallet + ingredients satisfy the recipe.
-          </p>
-        </div>
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">Mint</p>
+            <h1 className="text-3xl font-semibold">Forge Asset</h1>
+            <p className="text-sm text-[var(--text-muted)]">
+              Connect your Phantom wallet, review the recipe requirements below, and click "Forge Asset" to mint your NFT.
+            </p>
+          </div>
 
         <div className="neu-panel p-6">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <h2 className="text-xl font-semibold">Recipe: {slug}</h2>
               <p className="text-sm text-[var(--text-muted)]">
-                Connect your wallet and ensure you meet all ingredient requirements to forge this asset.
+                Step 1: Connect your Phantom wallet using the button below
+                <br />
+                Step 2: Review ingredient requirements (if any) in the section below
+                <br />
+                Step 3: Click "Forge Asset" to mint your NFT
               </p>
             </div>
             <span className="px-3 py-1 text-xs rounded-full border border-[rgba(255,255,255,0.1)] text-[var(--accent-tertiary)]">
@@ -349,12 +346,25 @@ export default function MintPage() {
                 {forging ? "Forging..." : "Forge Asset"}
               </button>
 
-              <div className="neu-ghost p-4 border border-[rgba(255,255,255,0.06)]">
-                <p className="text-sm text-[var(--text-muted)]">
-                  Ingredient verification required. Ensure you have all required tokens/NFTs/allowlist proofs.
-                  {recipe && !recipe.ingredientConstraints?.length && " This recipe has no ingredient constraints."}
-                </p>
-              </div>
+              {recipe && recipe.ingredientConstraints && recipe.ingredientConstraints.length > 0 ? (
+                <div className="neu-ghost p-4 border border-[rgba(255,200,87,0.3)]">
+                  <p className="text-sm font-semibold text-[var(--accent-tertiary)] mb-2">
+                    ⚠️ Ingredient Requirements
+                  </p>
+                  <p className="text-sm text-[var(--text-muted)]">
+                    This recipe requires specific ingredients. Make sure you have all required tokens, NFTs, or allowlist proofs in your wallet before forging.
+                  </p>
+                </div>
+              ) : (
+                <div className="neu-ghost p-4 border border-[rgba(90,196,141,0.3)]">
+                  <p className="text-sm font-semibold text-[var(--accent-primary)] mb-2">
+                    ✓ No Ingredient Requirements
+                  </p>
+                  <p className="text-sm text-[var(--text-muted)]">
+                    This recipe has no ingredient constraints. You can forge this asset immediately after connecting your wallet.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -411,10 +421,15 @@ export default function MintPage() {
               {recipe ? "This recipe has no ingredient constraints." : "Loading recipe requirements..."}
             </p>
           )}
-          <p className="text-sm text-[var(--text-muted)] mt-4">
-            Note: If this fails with account-not-found, ensure you deployed + ran `npm run init-forge` and
-            created/activated the recipe on the same cluster.
-          </p>
+          <div className="mt-4 space-y-2">
+            <p className="text-sm text-[var(--text-muted)]">
+              <strong>How to forge:</strong> Connect your Phantom wallet, ensure you meet any ingredient requirements shown above, then click "Forge Asset". 
+              The transaction will mint a new NFT to your wallet.
+            </p>
+            <p className="text-xs text-[var(--text-muted)]">
+              <strong>Note:</strong> You'll need SOL in your wallet for transaction fees. On devnet, you can get free SOL from the faucet.
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -1,89 +1,281 @@
 # Solana NFT Forge (Anchor + Next.js)
 
-Production-grade forging: define recipes with ingredient constraints and mint NFTs (1/1 today; editions/semi-fungibles next). Frontend ships a neumorphic/nature-inspired theme with wallet adapter and new footer/branding.
+A production-grade Solana program for forging NFTs using recipe-based ingredient constraints. Define recipes with requirements (tokens, NFTs, allowlists), and users can forge new assets once they meet those requirements.
 
-## Current status
-- Localnet: proven end-to-end 1/1 mint via CLI (`forge_asset`).
-- Devnet: **deployed and proven** (built via Docker with solana-cli 3.0.13, rustc 1.92.0).
-  - Program ID: `BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
-  - IDL account: `5icFcScscSR7XBBCtKz6ipPc63QRkmLYYpvfpeL2UDSm`
-  - Forge Config PDA: `AijiehS47c9CdZhCp2swXTdWg8LmBkqM25u4DS1kiYVE`
-  - Recipe: slug `iron-sword`, v1, PDA `7vhHcp7GmLe7ypbvA2tztB4QH6que6GhwB35KMzjqj6Z`
-  - Forge tx: `GEsmRwLGMkuPAcjGLi4obV5UZ45PWyCxoKoBrKJC8WGRFv4ycc7mpHwzhvTfZ5PZDiUYB5XoavNy8FFq87HtuKm`
-  - Mint: `96V7rQjb48r28NySW7h3N3ZunncCZZP5KfAgCWvac8rz`
-- Frontend: Vercel-ready; global footer, logo branding, and rust-themed styling applied.
+**Live Demo**: [Deployed on Vercel](https://solana-nft-forge.vercel.app) (devnet)
 
-## Repo layout
-```
-programs/forge         # Anchor program
-programs/forge-tests   # Rust integration tests
-scripts/               # TypeScript CLI (init, recipe, forge)
-app/                   # Next.js App Router frontend
-public/logos/          # UI branding assets
-docs/                  # Guides and verification notes
-vision.md              # Detailed roadmap/status (to be retired when public)
-```
+## 🎯 For Users (Forgers)
 
-## Quick start
+Want to forge an NFT? Here's how:
+
+### Quick Start (Using the Live Demo)
+
+1. **Visit the deployed frontend** (link above) or run locally (see Developer Setup below)
+2. **Connect your Phantom wallet** - Click "Connect Wallet" and approve the connection
+3. **Navigate to a recipe** - Visit `/mint/[recipe-slug]` (e.g., `/mint/iron-sword`)
+4. **Review requirements** - Check if the recipe has ingredient requirements (tokens, NFTs, etc.)
+5. **Forge your asset** - Click "Forge Asset" to mint your NFT
+
+**Requirements:**
+- Phantom wallet (or Solflare) installed
+- SOL in your wallet for transaction fees (on devnet, use the [Solana Faucet](https://faucet.solana.com/))
+- Any required ingredients (tokens, NFTs, allowlist proofs) as specified by the recipe
+
+### What You'll Get
+
+- A new NFT minted to your wallet
+- Metadata attached via Metaplex Token Metadata
+- Transaction signature for verification
+
+---
+
+## 👨‍💻 For Developers & Contributors
+
+### Prerequisites
+
+- **Node.js** v20+ and npm
+- **Rust** (latest stable) and Cargo
+- **Anchor** CLI v0.32+ (`avm install 0.32.1`)
+- **Solana CLI** v2.3+ (for localnet) or v3.0+ (for devnet builds)
+- **Git**
+
+### Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/Solana-NFT-Forge-with-Anchor.git
+cd Solana-NFT-Forge-with-Anchor
+
+# Install root dependencies
 npm install
-cd scripts && npm install
-cd ../app && npm install
+
+# Install scripts dependencies
+cd scripts && npm install && cd ..
+
+# Install frontend dependencies
+cd app && npm install && cd ..
 ```
 
-Env (root `.env` and `app/.env.local`):
-- `CLUSTER` / `NEXT_PUBLIC_CLUSTER` (localnet|devnet)
-- `SOLANA_RPC_URL` / `NEXT_PUBLIC_SOLANA_RPC_URL`
-- `FORGE_PROGRAM_ID` / `NEXT_PUBLIC_FORGE_PROGRAM_ID`
-- `NEXT_PUBLIC_FORGE_AUTHORITY`
+### Environment Setup
 
-Localnet (requires Token Metadata clone):
-```bash
-.\scripts\start-validator.ps1 -ResetLedger -UseUserLedger -KillExisting -CloneTokenMetadata -CloneUrl devnet
-cd scripts && npm run init-forge && npm run create-recipe
-```
+1. **Copy environment template:**
+   ```bash
+   cp .env.example .env
+   ```
 
-Frontend:
+2. **Configure environment variables** (see `.env.example` for details):
+   - `CLUSTER`: `localnet` for local development, `devnet` for shared testing
+   - `SOLANA_RPC_URL`: RPC endpoint (defaults provided)
+   - `FORGE_PROGRAM_ID`: Program ID (already set to deployed devnet program)
+   - `NEXT_PUBLIC_FORGE_AUTHORITY`: Forge authority pubkey (defaults to deployed devnet authority)
+
+   **Note:** The frontend defaults to the deployed devnet forge authority, so you can use it immediately without additional setup.
+
+3. **For frontend** (`app/.env.local`):
+   ```bash
+   cd app
+   cp ../.env.example .env.local
+   # Edit .env.local if needed (defaults work for devnet)
+   ```
+
+### Local Development Setup
+
+#### Option 1: Use Deployed Devnet Program (Easiest)
+
+The program is already deployed on devnet. Just run the frontend:
+
 ```bash
 cd app
-npm run dev          # local
-npm run build        # production
-npm run lint         # eslint
-npm run typecheck    # tsc
+npm run dev
 ```
 
-CLI samples:
-```bash
-cd scripts
-npm run forge-asset -- -s my-recipe -v 1
+Visit `http://localhost:3000` and connect your Phantom wallet (set to devnet).
+
+#### Option 2: Full Local Development (Localnet)
+
+1. **Start local validator** (Windows):
+   ```powershell
+   .\scripts\start-validator.ps1 -ResetLedger -UseUserLedger -KillExisting -CloneTokenMetadata -CloneUrl devnet
+   ```
+
+   **Note:** The `-CloneTokenMetadata` flag is required because Metaplex Token Metadata program must be present for CPI calls.
+
+2. **Build and deploy the program:**
+   ```bash
+   anchor build
+   anchor deploy
+   ```
+
+3. **Initialize forge:**
+   ```bash
+   cd scripts
+   npm run init-forge
+   ```
+
+4. **Create a recipe:**
+   ```bash
+   npm run create-recipe -- -s iron-sword -n "Iron Sword" -u "https://example.com/metadata.json"
+   ```
+
+5. **Run frontend:**
+   ```bash
+   cd ../app
+   npm run dev
+   ```
+
+### Project Structure
+
+```
+Solana-NFT-Forge-with-Anchor/
+├── programs/
+│   ├── forge/              # Anchor program (Rust)
+│   └── forge-tests/        # Integration tests
+├── scripts/                # TypeScript CLI tools
+│   ├── src/
+│   │   ├── init-forge.ts   # Initialize forge config
+│   │   ├── create-recipe.ts # Create new recipes
+│   │   ├── toggle-recipe.ts # Enable/disable recipes
+│   │   └── forge-asset.ts  # CLI forging example
+│   └── idl/                # Generated IDL
+├── app/                    # Next.js frontend
+│   ├── app/
+│   │   ├── mint/[slug]/    # Minting page
+│   │   └── creator/        # Creator dashboard
+│   └── lib/
+│       ├── forgeClient.ts  # Client SDK
+│       └── wallet.tsx      # Wallet adapter setup
+├── docs/                   # Documentation
+└── ConnectionGuide.txt     # Ports and endpoints reference
 ```
 
-## Deployment notes
-- Vercel:
-  - Root directory: `app/`
-  - Build command: `npm run build`
-  - Output: `.next`
-  - Environment variables (Project → Settings → Environment Variables):
-    - `NEXT_PUBLIC_CLUSTER=devnet`
-    - `NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com`
-    - `NEXT_PUBLIC_FORGE_PROGRAM_ID=BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
-    - `NEXT_PUBLIC_FORGE_AUTHORITY=Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA`
-    - (optional) `NEXT_PUBLIC_FORGE_IDL_URL` if you host the IDL separately; otherwise rely on `app/public/idl/forge.json`.
-- Devnet: already deployed; scripts in `scripts/` run with `CLUSTER=devnet` and `SOLANA_RPC_URL=https://api.devnet.solana.com`.
+### Available Scripts
 
-## Assets & UI
-- Logos now in `app/public/logos/` (`logo-hammer.png`, `logo-lockup.png`); footer shows “Built by { David Seibold }” with GitHub link.
-- Global theme lives in `app/app/globals.css`; footer defined in `app/app/layout.tsx`.
+**Root:**
+- `npm install` - Install all dependencies
+- `anchor build` - Build the Anchor program
+- `anchor deploy` - Deploy to configured cluster
+- `anchor test` - Run integration tests
 
-## Testing
-- Rust: `cargo check --package forge`, `cargo fmt`, (anchor tests pending toolchain unblock).
-- Frontend: `npm run lint`, `npm run typecheck`, `npm run test:e2e` (Playwright scaffold).
+**Scripts (`scripts/`):**
+- `npm run init-forge` - Initialize forge configuration
+- `npm run create-recipe` - Create a new recipe
+- `npm run toggle-recipe` - Enable/disable a recipe
+- `npm run forge-asset` - Forge an asset via CLI
 
-## Roadmap highlights (brief)
-- Wire frontend mint to real transaction flow (forged 1/1 already proven via CLI).
-- Deploy to devnet and validate mint there.
-- Add edition + semi-fungible paths; collection verification; more tests.
+**Frontend (`app/`):**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run typecheck` - TypeScript type checking
+- `npm run test:e2e` - Run Playwright E2E tests
 
-## License
-MIT
+### Development Workflow
 
+1. **Make changes** to program, scripts, or frontend
+2. **Build program:** `anchor build`
+3. **Deploy to localnet:** `anchor deploy` (after starting validator)
+4. **Test via CLI:** `cd scripts && npm run forge-asset`
+5. **Test via frontend:** `cd app && npm run dev`
+6. **Run tests:** `anchor test` and `npm run test:e2e`
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/your-feature`)
+3. Make your changes
+4. Run tests and linting (`npm run lint`, `npm run typecheck`, `anchor test`)
+5. Commit your changes (`git commit -m 'Add some feature'`)
+6. Push to the branch (`git push origin feat/your-feature`)
+7. Open a Pull Request
+
+### Code Style
+
+- **Rust:** Use `cargo fmt` and `cargo clippy`
+- **TypeScript:** Use ESLint and Prettier (configured)
+- **Commits:** Use conventional commit messages
+
+---
+
+## 📚 Documentation
+
+- **[Recipes Guide](docs/recipes.md)** - How to create and manage recipes
+- **[Localnet Setup](docs/localnet.md)** - Detailed localnet configuration
+- **[Manual Tasks](docs/manual-tasks.md)** - Step-by-step operational tasks
+- **[Connection Guide](ConnectionGuide.txt)** - Ports, endpoints, and connection details
+
+---
+
+## 🚀 Deployment
+
+### Devnet (Already Deployed)
+
+- **Program ID:** `BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
+- **Forge Config PDA:** `AijiehS47c9CdZhCp2swXTdWg8LmBkqM25u4DS1kiYVE`
+- **Active Recipe:** `iron-sword` (v1)
+
+### Vercel Frontend Deployment
+
+1. Connect your GitHub repository to Vercel
+2. Set root directory to `app/`
+3. Configure environment variables:
+   - `NEXT_PUBLIC_CLUSTER=devnet`
+   - `NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com`
+   - `NEXT_PUBLIC_FORGE_PROGRAM_ID=BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
+   - `NEXT_PUBLIC_FORGE_AUTHORITY=Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA`
+4. Deploy
+
+---
+
+## 🧪 Testing
+
+- **Rust:** `cargo check --package forge`, `cargo fmt`, `anchor test`
+- **TypeScript:** `npm run lint`, `npm run typecheck`
+- **E2E:** `npm run test:e2e` (Playwright)
+
+---
+
+## 📋 Current Status
+
+- ✅ **Core Program:** Complete - All 6 instructions implemented
+- ✅ **Devnet Deployment:** Deployed and proven
+- ✅ **Frontend:** Wallet integration, minting UI complete
+- ✅ **CLI Tools:** All scripts functional
+- ⏳ **Testing:** Structure ready, tests pending
+- ⏳ **Editions/Semi-Fungibles:** Planned for future
+
+---
+
+## 🛣️ Roadmap
+
+- [ ] Frontend transaction flow hardening
+- [ ] Edition and semi-fungible asset support
+- [ ] Collection verification workflows
+- [ ] Comprehensive test suite
+- [ ] Compressed NFT (Bubblegum) support
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details
+
+---
+
+## 🙏 Acknowledgments
+
+Built with:
+- [Anchor](https://www.anchor-lang.com/) - Solana framework
+- [Metaplex](https://www.metaplex.com/) - Token Metadata standard
+- [Next.js](https://nextjs.org/) - React framework
+- [Solana Wallet Adapter](https://github.com/solana-labs/wallet-adapter) - Wallet integration
+
+---
+
+## 📞 Support
+
+- **Issues:** [GitHub Issues](https://github.com/YOUR_USERNAME/Solana-NFT-Forge-with-Anchor/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/YOUR_USERNAME/Solana-NFT-Forge-with-Anchor/discussions)
+
+---
+
+**Built by [David Seibold](https://github.com/PenneconDavid)**

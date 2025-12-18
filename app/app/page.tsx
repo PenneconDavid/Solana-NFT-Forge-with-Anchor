@@ -32,7 +32,7 @@ export default function HomePage() {
               <span className="text-[var(--accent-primary)]">ingredients</span>.
             </h1>
             <p className="text-lg text-[var(--text-muted)] max-w-3xl mx-auto">
-              Neumorphic UI, nature-inspired accents, and a streamlined flow for creators and forgers.
+              Connect your Phantom wallet and forge NFTs using recipe-based ingredients. No setup required—works out of the box with the deployed devnet forge.
             </p>
             <div className="flex flex-wrap justify-center gap-4 items-center">
               <WalletMultiButton className="!bg-[var(--accent-primary)] !text-[#0b0f0b] !font-semibold !px-5 !py-3 !rounded-xl btn-glow" />
@@ -80,14 +80,14 @@ export default function HomePage() {
             <div className="text-sm text-[var(--accent-tertiary)] mb-2">For forgers</div>
             <h2 className="text-2xl font-semibold mb-3">Forge Assets</h2>
             <p className="text-[var(--text-muted)] mb-4">
-              Use recipes to forge new NFTs once you meet ingredient requirements. Wallet-ready and fast.
+              Connect your Phantom wallet, review recipe requirements, and forge new NFTs. Simple 3-step process: Connect → Review → Forge.
             </p>
             {connected ? (
               <Link href="/mint/iron-sword" className="inline-flex items-center gap-2 text-[var(--accent-primary)] font-semibold hover:text-[var(--accent-secondary)]">
                 Forge iron-sword →
               </Link>
             ) : (
-              <p className="text-[var(--text-muted)] text-sm">Connect wallet to forge.</p>
+              <p className="text-[var(--text-muted)] text-sm">Connect your Phantom wallet to get started.</p>
             )}
           </div>
 
@@ -115,14 +115,14 @@ export default function HomePage() {
                 <div className="text-3xl mb-2">🔥</div>
                 <h3 className="font-semibold text-lg mb-1">Meet Requirements</h3>
                 <p className="text-sm text-[var(--text-muted)] max-w-xs">
-                  Users collect the tokens, NFTs, or allowlist proofs required by each recipe.
+                  Review recipe requirements. Some recipes have no requirements and can be forged immediately!
                 </p>
               </div>
               <div className="neu-ghost p-4 rounded-xl border border-[rgba(255,255,255,0.06)]">
                 <div className="text-3xl mb-2">🛠️</div>
                 <h3 className="font-semibold text-lg mb-1">Forge Assets</h3>
                 <p className="text-sm text-[var(--text-muted)] max-w-xs">
-                  Submit ingredients, mint, and attach metadata via CPI to Metaplex Token Metadata.
+                  Click "Forge Asset" to mint your NFT. Transaction fees apply (free SOL available on devnet via faucet).
                 </p>
               </div>
             </div>
