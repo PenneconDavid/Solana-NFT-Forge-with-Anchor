@@ -426,7 +426,8 @@ export default function MintPage() {
       const transaction = await txBuilder.transaction();
       console.log("Transaction built:", {
         instructions: transaction.instructions.length,
-        signers: transaction.signers.length,
+        // Note: signers are tracked separately, not on the transaction object
+        signersCount: 2, // forger (wallet) + mint keypair
         recentBlockhash: transaction.recentBlockhash?.toString(),
       });
       
