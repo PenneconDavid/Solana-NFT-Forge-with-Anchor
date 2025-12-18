@@ -701,7 +701,7 @@ export default function MintPage() {
                   <p className="text-sm text-[var(--text-muted)] mb-2">
                     This recipe has no ingredient constraints. You can forge this asset immediately after connecting your wallet.
                   </p>
-                  {recipe.minted && (typeof recipe.minted === "number" ? recipe.minted > 0 : parseInt(recipe.minted.toString()) > 0) && (
+                  {recipe && recipe.minted && (typeof recipe.minted === "number" ? recipe.minted > 0 : parseInt(recipe.minted.toString()) > 0) && (
                     <div className="mt-2 p-2 bg-[rgba(255,200,87,0.1)] border border-[rgba(255,200,87,0.3)] rounded">
                       <p className="text-xs text-[var(--accent-tertiary)]">
                         ⚠️ <strong>Note:</strong> This recipe has already been forged. Recipes with no ingredients can only be forged once because everyone uses the same input hash. 
