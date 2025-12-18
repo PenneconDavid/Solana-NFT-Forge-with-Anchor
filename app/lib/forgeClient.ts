@@ -195,7 +195,10 @@ export class ForgeClient {
         throw new Error("forgerPubkey is required when computing hash for recipes with no ingredient constraints");
       }
       const forgerBytes = forgerPubkey.toBytes();
-      const hashBuffer = await crypto.subtle.digest("SHA-256", forgerBytes);
+      // Convert to a regular Uint8Array to satisfy TypeScript's BufferSource type requirement
+      // Create a new Uint8Array from the bytes to ensure proper buffer type
+      const forgerBytesArray = new Uint8Array(forgerBytes);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", forgerBytesArray);
       return new Uint8Array(hashBuffer).slice(0, 32);
     }
 
