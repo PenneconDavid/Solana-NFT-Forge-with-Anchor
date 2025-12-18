@@ -340,8 +340,12 @@ export default function MintPage() {
       const [recipeUsePDA] = client.deriveRecipeUsePDA(recipePDA, inputHash);
       
       // Verify recipe exists and is active before attempting to forge
+      // Note: Type assertion needed because Anchor's TypeScript types aren't fully inferred from IDL
       try {
-        const recipeAccount = await client.program.account.recipe.fetch(recipePDA);
+        const accounts = client.program.account as unknown as {
+          recipe: { fetch: (pk: PublicKey) => Promise<Recipe> };
+        };
+        const recipeAccount = await accounts.recipe.fetch(recipePDA);
         console.log("Recipe account fetched:", {
           status: JSON.stringify(recipeAccount.status),
           minted: recipeAccount.minted?.toString(),
