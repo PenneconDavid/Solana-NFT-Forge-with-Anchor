@@ -203,7 +203,7 @@ pub fn forge_asset(ctx: Context<ForgeAsset>, args: ForgeAssetArgs) -> Result<()>
             // For recipes with no ingredient constraints, include both the forger's pubkey
             // and the mint pubkey in the hash. This allows each wallet to forge multiple times
             // (each mint is unique) while preserving security (prevents replay attacks).
-            // Hash: hashv(&[forger_pubkey, mint_pubkey])
+            // Hash: hashv(&[forger_pubkey, mint_pubkey]) = SHA256(forger_pubkey || mint_pubkey)
             hashv(&[forger.key().as_ref(), mint.key().as_ref()]).to_bytes()
         } else {
             let hash_inputs: Vec<&[u8]> =
