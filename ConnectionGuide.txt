@@ -57,6 +57,7 @@ Transaction Configuration
 Deployment Information
 - Latest Deployment (2025-12-19): Signature 5fLX6Jacroy8DCQ2XKxNYSfrofwUG6HyvayUqaVvR3V9XFpXTZZUhrpmf3zfhfpVsD9EeVNfDHz6hGSmNpuXwwwe
 - Deployment Method: Docker (docker-deploy.ps1 script)
-- Hash Logic Update: Program now includes forger's pubkey in hash for 0-ingredient recipes, allowing each wallet to forge once
+- Hash Logic Update: Program now includes BOTH forger's pubkey AND mint pubkey in hash for 0-ingredient recipes, allowing each wallet to forge multiple times (each mint is unique)
 - Docker Image: solana-forge-deploy (Ubuntu 24.04 with Anchor 0.32.1)
+- Hash Computation: hashv(&[forger_pubkey, mint_pubkey]) = SHA256(forger_pubkey || mint_pubkey)
 
