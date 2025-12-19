@@ -54,3 +54,9 @@ Transaction Configuration
 - Priority Fee: Transactions include a small priority fee (1 microLamport) to help with transaction processing
 - Implementation: Compute budget instructions are added via `.preInstructions()` in both frontend (app/app/mint/[slug]/page.tsx) and CLI scripts (scripts/src/forge-asset.ts)
 
+Deployment Information
+- Latest Deployment (2025-12-19): Signature 5fLX6Jacroy8DCQ2XKxNYSfrofwUG6HyvayUqaVvR3V9XFpXTZZUhrpmf3zfhfpVsD9EeVNfDHz6hGSmNpuXwwwe
+- Deployment Method: Docker (docker-deploy.ps1 script)
+- Hash Logic Update: Program now includes forger's pubkey in hash for 0-ingredient recipes, allowing each wallet to forge once
+- Docker Image: solana-forge-deploy (Ubuntu 24.04 with Anchor 0.32.1)
+

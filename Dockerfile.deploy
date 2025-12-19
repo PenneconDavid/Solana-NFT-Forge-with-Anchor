@@ -1,0 +1,41 @@
+# Dockerfile for building and deploying Solana Anchor program
+# Uses Ubuntu 24.04 for newer GLIBC required by Anchor 0.32.1
+
+FROM ubuntu:24.04
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies (including C compiler)
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/* && \
+    ln -sf /usr/bin/gcc /usr/bin/cc
+
+# Install Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:$PATH"
+ENV CC=gcc
+ENV CXX=g++
+
+# Install Solana CLI
+RUN sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+ENV PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
+
+# Install Anchor via avm
+RUN cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+RUN /root/.cargo/bin/avm install 0.32.1
+RUN /root/.cargo/bin/avm use 0.32.1
+
+# Set PATH to include Anchor
+ENV PATH="/root/.cargo/bin:/root/.local/share/solana/install/active_release/bin:$PATH"
+
+# Set working directory
+WORKDIR /workspace
+
+# Default command
+CMD ["/bin/bash"]
