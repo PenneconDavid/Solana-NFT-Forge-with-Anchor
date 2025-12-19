@@ -183,22 +183,28 @@ export class ForgeClient {
    * On-chain uses: solana_program::hash::hashv(&hash_inputs)
    * This is SHA256 of concatenated inputs
    * 
-   * For recipes with no ingredient constraints, includes the forger's pubkey
-   * to allow each wallet to forge once while preserving security.
+   * For recipes with no ingredient constraints, includes both the forger's pubkey
+   * and the mint pubkey to allow each wallet to forge multiple times while preserving security.
    */
-  async computeInputHash(ingredientChunks: Uint8Array[], forgerPubkey?: PublicKey): Promise<Uint8Array> {
+  async computeInputHash(ingredientChunks: Uint8Array[], forgerPubkey?: PublicKey, mintPubkey?: PublicKey): Promise<Uint8Array> {
     if (ingredientChunks.length === 0) {
-      // For recipes with no ingredient constraints, include the forger's pubkey
-      // in the hash to allow each wallet to forge once while preserving security.
-      // This matches on-chain: hashv(&[forger_pubkey])
+      // For recipes with no ingredient constraints, include both the forger's pubkey
+      // and the mint pubkey in the hash. This allows each wallet to forge multiple times
+      // (each mint is unique) while preserving security (prevents replay attacks).
+      // This matches on-chain: hashv(&[forger_pubkey, mint_pubkey])
       if (!forgerPubkey) {
         throw new Error("forgerPubkey is required when computing hash for recipes with no ingredient constraints");
       }
+      if (!mintPubkey) {
+        throw new Error("mintPubkey is required when computing hash for recipes with no ingredient constraints");
+      }
       const forgerBytes = forgerPubkey.toBytes();
-      // Convert to a regular Uint8Array to satisfy TypeScript's BufferSource type requirement
-      // Create a new Uint8Array from the bytes to ensure proper buffer type
-      const forgerBytesArray = new Uint8Array(forgerBytes);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", forgerBytesArray);
+      const mintBytes = mintPubkey.toBytes();
+      // Concatenate forger + mint pubkeys (matching hashv behavior)
+      const combined = new Uint8Array(forgerBytes.length + mintBytes.length);
+      combined.set(forgerBytes, 0);
+      combined.set(mintBytes, forgerBytes.length);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
       return new Uint8Array(hashBuffer).slice(0, 32);
     }
 

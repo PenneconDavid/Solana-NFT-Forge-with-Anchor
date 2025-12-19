@@ -147,9 +147,13 @@ program
         `   Minted: ${recipeAccount.minted}/${recipeAccount.supplyCap ?? "unlimited"}\n`
       );
 
+      // Generate mint first (needed for hash computation if no inputHash provided)
+      let mint: Keypair;
       let inputHash: Uint8Array;
       if (options.inputHash) {
         inputHash = parseHex32(options.inputHash);
+        // Generate mint after hash (hash doesn't include mint when provided manually)
+        mint = Keypair.generate();
       } else {
         if (ingredientCount !== 0) {
           throw new Error(
@@ -157,15 +161,19 @@ program
               "Either use a 0-ingredient recipe for now, or tell me which constraints you want to support next and I’ll extend this script."
           );
         }
-        // On-chain logic for empty constraints: hashv(&[forger_pubkey]) == sha256(forger_pubkey)
-        // This allows each wallet to forge once while preserving security
-        inputHash = sha256(wallet.publicKey.toBuffer());
+        // On-chain logic for empty constraints: hashv(&[forger_pubkey, mint_pubkey]) == sha256(forger_pubkey || mint_pubkey)
+        // This allows each wallet to forge multiple times (each mint is unique) while preserving security
+        // Generate mint first so we can include it in the hash
+        mint = Keypair.generate();
+        const forgerBytes = wallet.publicKey.toBuffer();
+        const mintBytes = mint.publicKey.toBuffer();
+        const combined = Buffer.concat([forgerBytes, mintBytes]);
+        inputHash = sha256(combined);
       }
 
       const [recipeUsePDA] = deriveRecipeUsePDA(programId, recipePDA, inputHash);
 
-      // Mint + PDAs
-      const mint = Keypair.generate();
+      // Mint + PDAs (mint already generated above)
       const [mintAta] = deriveAta(wallet.publicKey, mint.publicKey);
       const [metadata] = deriveMetadataPda(mint.publicKey);
       const [masterEdition] = deriveMasterEditionPda(mint.publicKey);

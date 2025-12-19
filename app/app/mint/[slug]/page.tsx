@@ -292,6 +292,13 @@ export default function MintPage() {
       }
       return;
     }
+    
+    // Validate publicKey is not the FORGE_AUTHORITY (common mistake)
+    const DEFAULT_FORGE_AUTHORITY = "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
+    if (publicKey.toBase58() === DEFAULT_FORGE_AUTHORITY) {
+      setError("You are connected with the FORGE_AUTHORITY wallet. Please connect with a different wallet to forge.");
+      return;
+    }
 
     setForging(true);
     setError(null);
@@ -333,23 +340,14 @@ export default function MintPage() {
         throw new Error(`Invalid FORGE_AUTHORITY: "${authorityStr}". ${err instanceof Error ? err.message : String(err)}`);
       }
 
-      // Build ingredient hash chunks
-      const constraintsForHash = (recipe.ingredientConstraints || []) as Parameters<
-        typeof client.buildIngredientHashChunks
-      >[0];
-      const ingredientChunks = client.buildIngredientHashChunks(constraintsForHash, publicKey);
-
-      // Compute input hash (pass forger pubkey for 0-ingredient recipes)
-      const inputHash = await client.computeInputHash(ingredientChunks, publicKey);
+      // Debug: Log the publicKey being used
+      console.log("Forger publicKey:", publicKey?.toBase58());
+      console.log("Forger publicKey type:", typeof publicKey);
+      console.log("Forger publicKey instanceof PublicKey:", publicKey instanceof PublicKey);
       
-      // Validate input hash is 32 bytes
-      if (inputHash.length !== 32) {
-        throw new Error(`Invalid input hash length: expected 32 bytes, got ${inputHash.length}`);
+      if (!publicKey) {
+        throw new Error("publicKey is not available. Please connect your wallet.");
       }
-      
-      // Anchor accepts both Uint8Array and number[] for [u8; 32] arrays
-      // Use Uint8Array directly to match the working script pattern
-      const inputHashForArgs = inputHash;
 
       // Derive PDAs
       const [forgeConfigPDA] = client.deriveForgeConfigPDA(forgeAuthority);
@@ -357,35 +355,6 @@ export default function MintPage() {
       const recipeVersion = recipe.version || 2; // Should be set from loadRecipe above
       console.log(`Using recipe version ${recipeVersion} for forging`);
       const [recipePDA] = client.deriveRecipePDA(forgeConfigPDA, recipe.slug, recipeVersion);
-      const [recipeUsePDA] = client.deriveRecipeUsePDA(recipePDA, inputHash);
-      
-      // Check if RecipeUse already exists (anti-replay protection)
-      // For 0-ingredient recipes, everyone uses the same input hash, so only one forge is possible
-      console.log("Checking if RecipeUse already exists at:", recipeUsePDA.toBase58());
-      const accountInfo = await connection.getAccountInfo(recipeUsePDA);
-      
-      if (accountInfo && accountInfo.data.length > 0) {
-        console.log("RecipeUse account EXISTS - cannot forge again");
-        const ingredientCount = recipe.ingredientConstraints?.length || 0;
-        const mintedCount = typeof recipe.minted === "number" ? recipe.minted : 
-                           recipe.minted?.toString() ? parseInt(recipe.minted.toString()) : 0;
-        
-        if (ingredientCount === 0) {
-          throw new Error(
-            `You have already forged this recipe with this wallet. Each wallet can forge a recipe with no ingredient requirements once. ` +
-            `The recipe has been forged ${mintedCount} time(s) total across all wallets. ` +
-            `To forge again, use a different wallet or create a new recipe version.`
-          );
-        } else {
-          throw new Error(
-            `This specific combination of ingredients has already been used to forge an NFT. ` +
-            `Each unique ingredient combination can only be used once per recipe. ` +
-            `Try a different combination of ingredients.`
-          );
-        }
-      } else {
-        console.log("RecipeUse account does not exist - can proceed with forging");
-      }
       
       // Verify recipe exists and is active before attempting to forge
       // Note: Type assertion needed because Anchor's TypeScript types aren't fully inferred from IDL
@@ -410,13 +379,49 @@ export default function MintPage() {
         throw new Error(`Failed to fetch recipe account. Recipe may not exist or may not be accessible. ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`);
       }
 
-      // Mint + Token Metadata PDAs
+      // Generate mint keypair FIRST (needed for hash computation for 0-ingredient recipes)
       const mintKeypair = Keypair.generate();
       const mintAta = deriveAta(publicKey, mintKeypair.publicKey);
       const metadata = deriveMetadataPda(mintKeypair.publicKey);
       const masterEdition = deriveMasterEditionPda(mintKeypair.publicKey);
 
-      // For the first “portfolio proof” recipe we recommend zero ingredients:
+      // Build ingredient hash chunks and compute input hash AFTER mint generation
+      // For 0-ingredient recipes, the hash includes both forger and mint pubkeys
+      // This allows each wallet to forge multiple times while preserving security
+      const constraintsForHash = (recipe.ingredientConstraints || []) as Parameters<
+        typeof client.buildIngredientHashChunks
+      >[0];
+      const ingredientChunks = client.buildIngredientHashChunks(constraintsForHash, publicKey);
+      const inputHash = await client.computeInputHash(ingredientChunks, publicKey, mintKeypair.publicKey);
+      
+      // Validate input hash is 32 bytes
+      if (inputHash.length !== 32) {
+        throw new Error(`Invalid input hash length: expected 32 bytes, got ${inputHash.length}`);
+      }
+      
+      // Anchor accepts both Uint8Array and number[] for [u8; 32] arrays
+      // Use Uint8Array directly to match the working script pattern
+      const inputHashForArgs = inputHash;
+      
+      // Derive RecipeUse PDA with the new hash (includes mint pubkey for 0-ingredient recipes)
+      const [recipeUsePDA] = client.deriveRecipeUsePDA(recipePDA, inputHash);
+      
+      // Check if RecipeUse already exists (anti-replay protection)
+      // With mint pubkey in hash, each mint attempt gets a unique RecipeUse PDA
+      console.log("Checking if RecipeUse already exists at:", recipeUsePDA.toBase58());
+      const accountInfo = await connection.getAccountInfo(recipeUsePDA);
+      
+      if (accountInfo && accountInfo.data.length > 0) {
+        console.log("RecipeUse account EXISTS - this mint has already been used");
+        throw new Error(
+          `This specific mint has already been used to forge an NFT. ` +
+          `Each mint can only be used once. Please try again (a new mint will be generated).`
+        );
+      } else {
+        console.log("RecipeUse account does not exist - can proceed with forging");
+      }
+
+      // For the first "portfolio proof" recipe we recommend zero ingredients:
       const remainingAccounts: { pubkey: PublicKey; isSigner: boolean; isWritable: boolean }[] = [];
 
       // Build transaction builder
@@ -710,14 +715,14 @@ export default function MintPage() {
                     ✓ No Ingredient Requirements
                   </p>
                   <p className="text-sm text-[var(--text-muted)] mb-2">
-                    This recipe has no ingredient constraints. Each wallet can forge this asset once. 
+                    This recipe has no ingredient constraints. Each wallet can forge this asset multiple times. 
                     Connect your wallet and click "Forge Asset" to mint your NFT.
                   </p>
                   {recipe && recipe.minted && (typeof recipe.minted === "number" ? recipe.minted > 0 : parseInt(recipe.minted.toString()) > 0) && (
                     <div className="mt-2 p-2 bg-[rgba(90,196,141,0.1)] border border-[rgba(90,196,141,0.3)] rounded">
                       <p className="text-xs text-[var(--accent-primary)]">
                         ℹ️ <strong>Info:</strong> This recipe has been forged {typeof recipe.minted === "number" ? recipe.minted : parseInt(recipe.minted.toString())} time(s) across all wallets. 
-                        Each wallet can still forge once.
+                        You can forge multiple times with the same wallet.
                       </p>
                     </div>
                   )}
