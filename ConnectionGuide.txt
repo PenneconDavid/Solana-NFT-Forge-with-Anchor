@@ -61,3 +61,11 @@ Deployment Information
 - Docker Image: solana-forge-deploy (Ubuntu 24.04 with Anchor 0.32.1)
 - Hash Computation: hashv(&[forger_pubkey, mint_pubkey]) = SHA256(forger_pubkey || mint_pubkey)
 
+Network Configuration (CRITICAL)
+- Frontend is configured for DEVNET only (program deployed to devnet)
+- Wallet MUST be connected to Devnet, NOT Mainnet
+- MetaMask Solana Snap: User must manually switch to Devnet in MetaMask settings
+- Phantom/Solflare: Wallet adapters are configured with network parameter, but user should verify network selection
+- Network Validation: Frontend now validates network match before allowing transactions
+- Program Existence Check: Frontend verifies program exists on connected network before forging
+

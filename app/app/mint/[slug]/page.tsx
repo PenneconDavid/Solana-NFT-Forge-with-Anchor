@@ -293,6 +293,31 @@ export default function MintPage() {
       return;
     }
     
+    // Validate network - ensure we're on devnet (not mainnet)
+    const cluster = process.env.NEXT_PUBLIC_CLUSTER || "localnet";
+    const expectedRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
+      (cluster === "devnet" ? "https://api.devnet.solana.com" : 
+       cluster === "localnet" ? "http://127.0.0.1:8899" : 
+       "https://api.mainnet-beta.solana.com");
+    
+    const actualRpc = connection.rpcEndpoint;
+    const isMainnet = actualRpc.includes("mainnet-beta") || actualRpc.includes("api.mainnet");
+    const isDevnet = actualRpc.includes("devnet") || actualRpc.includes("api.devnet");
+    const isLocalnet = actualRpc.includes("127.0.0.1") || actualRpc.includes("localhost");
+    
+    if (cluster === "devnet" && !isDevnet && !isLocalnet) {
+      setError(
+        `Network mismatch detected! Your wallet is connected to ${isMainnet ? "Solana Mainnet" : "an unknown network"}, ` +
+        `but this app requires Solana Devnet. ` +
+        `Please switch your wallet to Devnet:\n\n` +
+        `• MetaMask: Open MetaMask → Settings → Solana → Switch to Devnet\n` +
+        `• Phantom: Click the network selector in Phantom and select "Devnet"\n` +
+        `• Solflare: Click the network selector and select "Devnet"\n\n` +
+        `Then reconnect your wallet.`
+      );
+      return;
+    }
+    
     // Validate publicKey is not the FORGE_AUTHORITY (common mistake)
     const DEFAULT_FORGE_AUTHORITY = "Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA";
     if (publicKey.toBase58() === DEFAULT_FORGE_AUTHORITY) {
@@ -305,6 +330,22 @@ export default function MintPage() {
     setSuccess(null);
 
     try {
+      // Verify the program exists on this network
+      const programId = new PublicKey(
+        process.env.NEXT_PUBLIC_FORGE_PROGRAM_ID ||
+          "BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN"
+      );
+      const programInfo = await connection.getAccountInfo(programId);
+      if (!programInfo || !programInfo.executable) {
+        throw new Error(
+          `Program ${programId.toBase58()} not found on this network. ` +
+          `This usually means:\n` +
+          `1. Your wallet is connected to the wrong network (should be Devnet)\n` +
+          `2. The program hasn't been deployed to this network\n\n` +
+          `Please switch your wallet to Devnet and try again.`
+        );
+      }
+
       // Check wallet balance first - need at least 0.01 SOL for rent + fees
       const balance = await connection.getBalance(publicKey);
       const minBalance = 0.01 * 1e9; // 0.01 SOL in lamports
