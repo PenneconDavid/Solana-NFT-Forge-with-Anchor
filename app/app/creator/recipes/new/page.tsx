@@ -61,7 +61,7 @@ export default function NewRecipePage() {
 
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
         <div>
-          <label className="block text-sm font-medium mb-2 text-[var(--text)]">Slug *</label>
+          <label className="block text-sm font-medium mb-2 text-[#0d120e]">Slug *</label>
           <input
             type="text"
             required
@@ -75,7 +75,7 @@ export default function NewRecipePage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-[var(--text)]">Version *</label>
+          <label className="block text-sm font-medium mb-2 text-[#0d120e]">Version *</label>
           <input
             type="number"
             required
@@ -87,7 +87,7 @@ export default function NewRecipePage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-[var(--text)]">Output Kind *</label>
+          <label className="block text-sm font-medium mb-2 text-[#0d120e]">Output Kind *</label>
           <select
             value={formData.outputKind}
             onChange={(e) => setFormData({ ...formData, outputKind: e.target.value })}
@@ -100,7 +100,7 @@ export default function NewRecipePage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-[var(--text)]">Supply Cap</label>
+          <label className="block text-sm font-medium mb-2 text-[#0d120e]">Supply Cap</label>
           <input
             type="number"
             min="1"
@@ -112,7 +112,7 @@ export default function NewRecipePage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-[var(--text)]">Metadata URI *</label>
+          <label className="block text-sm font-medium mb-2 text-[#0d120e]">Metadata URI *</label>
           <input
             type="text"
             required
@@ -124,7 +124,7 @@ export default function NewRecipePage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-[var(--text)]">Collection Mint</label>
+          <label className="block text-sm font-medium mb-2 text-[#0d120e]">Collection Mint</label>
           <input
             type="text"
             value={formData.collectionMint}
@@ -135,7 +135,7 @@ export default function NewRecipePage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-[var(--text)]">Go Live Date</label>
+          <label className="block text-sm font-medium mb-2 text-[#0d120e]">Go Live Date</label>
           <input
             type="datetime-local"
             value={formData.goLive}
