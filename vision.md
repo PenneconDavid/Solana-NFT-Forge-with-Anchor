@@ -1,30 +1,31 @@
 ### Solana “NFT Forge” with Anchor — Vision + Status (single source of truth)
 
-**Last updated**: 2025-12-18
+**Last updated**: 2025-12-19
 
 ### Status snapshot (where we are right now)
-- **Public-ready**: ✅ Framework no longer tied to single wallet; frontend defaults to deployed devnet forge authority
+- **Public-ready**: ✅ Fully functional on devnet with working frontend deployment
 - **Localnet (Windows) stable** using `solana-test-validator v2.3.13` with `scripts/start-validator.ps1`.
 - **Devnet deployed & proven** (via Docker toolchain: solana-cli 3.0.13, rustc 1.92.0):
   - Program ID: `BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN`
   - IDL account: `5icFcScscSR7XBBCtKz6ipPc63QRkmLYYpvfpeL2UDSm`
   - Forge initialized: `AijiehS47c9CdZhCp2swXTdWg8LmBkqM25u4DS1kiYVE`
   - Forge Authority: `Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA` (defaults in frontend)
-  - Recipe (active): slug `iron-sword`, v1, PDA `7vhHcp7GmLe7ypbvA2tztB4QH6que6GhwB35KMzjqj6Z` (v1 already forged - 1 mint)
-  - Recipe (active): slug `iron-sword`, v2, PDA `9GQK1Q3MjuQK6A7upamhZmiw4YqUS2W8pSaBSvVVKwFr` (created 2025-12-18, ready for forging)
-  - Forge tx: `GEsmRwLGMkuPAcjGLi4obV5UZ45PWyCxoKoBrKJC8WGRFv4ycc7mpHwzhvTfZ5PZDiUYB5XoavNy8FFq87HtuKm`
-  - Mint: `96V7rQjb48r28NySW7h3N3ZunncCZZP5KfAgCWvac8rz`
+  - Latest Deployment: `1uXb9Se5ReANvkPB3KtqGeewvWAwZe6NpxotBKdNm9otJfRQiRw6UoNV2vd7YESBixys4pimjR7LtHRpeA5adn3` (2025-12-19)
+  - Recipe (active): slug `iron-sword`, v2, PDA `9GQK1Q3MjuQK6A7upamhZmiw4YqUS2W8pSaBSvVVKwFr` (proven working - multiple successful mints)
+  - **Hash Logic**: Program includes both forger's pubkey AND mint pubkey in hash for 0-ingredient recipes, allowing each wallet to forge multiple times
+- **Frontend**: ✅ Deployed on Vercel at https://solana-nft-forge.vercel.app
 - **Localnet proof (historical)**: tx `2pN5G8DRdQShkgwgJkdbYU913RLAX6KzGZp9Rstszmmj2hfcLUM7fsJeLJ4kV8c1MxS3V1Gv1QEi8nwKX4hV2DHG`.
 - **UI refresh**: global footer with attribution, logos under `app/public/logos/`, rust/neumorphic theme applied.
-- **User experience**: ✅ Improved on-screen messages with clear step-by-step instructions for forging assets
+- **User experience**: ✅ Network validation, program existence checks, clear error messages, multiple mints per wallet working
 - **Documentation**: ✅ README updated with comprehensive setup instructions for both users and contributors
 
 ### What remains (and what we intentionally deferred)
 **Still to do (core portfolio path)**
 - **Frontend tx send**: ✅ COMPLETE - Frontend now sends real `forge_asset` transactions
+- **Multiple mints per wallet**: ✅ COMPLETE - Hash logic updated to allow multiple forges per wallet
 - **Testing**: add at least one happy-path and one negative test (scripts or frontend).
 - **Docs cleanup**: ✅ COMPLETE - README updated for public use; `vision.md` kept for historical reference.
-- **Public-ready**: ✅ COMPLETE - Framework no longer tied to single wallet; defaults to deployed devnet forge.
+- **Public-ready**: ✅ COMPLETE - Fully functional on devnet with working frontend and proven multiple mints.
 
 **Deferred / skipped on purpose**
 - Devnet walkthrough/demo video (future nice-to-have).

@@ -57,40 +57,32 @@ export default function HomePage() {
         </div>
 
         <div className="mt-8 max-w-5xl mx-auto">
-          <div className="neu-panel p-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="text-sm text-[var(--accent-tertiary)] mb-1">Devnet live</div>
-              <div className="font-semibold text-lg text-[var(--text)]">
-                Program: BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
-              </div>
-              <div className="text-sm text-[var(--text-muted)]">
-                Recipe <span className="font-mono text-[var(--accent-secondary)]">iron-sword</span> (v2) is active on devnet.
-                <span className="text-xs block mt-1 opacity-75">v1 already forged (1 mint). Frontend auto-selects latest version.</span>
-              </div>
+          <div className="neu-panel p-6">
+            <div className="text-sm text-[var(--accent-tertiary)] mb-2">Devnet live</div>
+            <div className="font-semibold text-lg text-[var(--text)] mb-2">
+              Program: BncAjQaJFE7xN4ut2jaAGVSKdrqpuzyuHoiCGTpj1DkN
             </div>
-            <Link
-              href="/mint/iron-sword"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[rgba(255,255,255,0.08)] text-[var(--accent-primary)] hover:text-[var(--accent-secondary)] transition font-semibold"
-            >
-              Go to mint →
-            </Link>
+            <div className="text-sm text-[var(--text-muted)]">
+              Recipe <span className="font-mono text-[var(--accent-secondary)]">iron-sword</span> (v2) is active on devnet.
+              <span className="text-xs block mt-1 opacity-75">Ready to forge! Each wallet can mint multiple times.</span>
+            </div>
           </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-14">
-          <Link href="/creator/recipes" className="neu-panel p-7 hover:scale-[1.01] transition-transform">
+          <Link href="/creator/recipes" className="neu-panel p-7 hover:scale-[1.01] transition-transform flex flex-col">
             <div className="text-sm text-[var(--accent-tertiary)] mb-2">For creators</div>
             <h2 className="text-2xl font-semibold mb-3">Creator Dashboard</h2>
-            <p className="text-[var(--text-muted)] mb-4">
+            <p className="text-[var(--text-muted)] mb-4 flex-grow">
               Define recipes, set supply caps, and configure metadata. Manage your forging logic in one place.
             </p>
             <div className="text-[var(--accent-secondary)] font-semibold">Go to Creator →</div>
           </Link>
 
-          <div className="neu-panel p-7">
+          <div className="neu-panel p-7 flex flex-col">
             <div className="text-sm text-[var(--accent-tertiary)] mb-2">For forgers</div>
             <h2 className="text-2xl font-semibold mb-3">Forge Assets</h2>
-            <p className="text-[var(--text-muted)] mb-4">
+            <p className="text-[var(--text-muted)] mb-4 flex-grow">
               Connect your Phantom wallet, review recipe requirements, and forge new NFTs. Simple 3-step process: Connect → Review → Forge.
             </p>
             {connected ? (
@@ -102,10 +94,10 @@ export default function HomePage() {
             )}
           </div>
 
-          <div className="neu-panel p-7">
+          <div className="neu-panel p-7 flex flex-col">
             <div className="text-sm text-[var(--accent-tertiary)] mb-2">Cluster-aware</div>
             <h2 className="text-2xl font-semibold mb-3">Localnet / Devnet</h2>
-            <p className="text-[var(--text-muted)] mb-4">
+            <p className="text-[var(--text-muted)] mb-4 flex-grow">
               Built for localnet iteration and devnet readiness. Frontend surfaces validator prereqs and recipe status.
             </p>
             <div className="text-[var(--accent-primary)] font-semibold">Docs coming →</div>
@@ -114,28 +106,37 @@ export default function HomePage() {
 
         <div className="mt-16 max-w-6xl mx-auto">
           <div className="neu-panel p-8">
-            <div className="flex flex-wrap gap-6 items-start">
-              <div className="neu-ghost p-4 rounded-xl border border-[rgba(255,255,255,0.06)]">
-                <div className="text-3xl mb-2">🌿</div>
-                <h3 className="font-semibold text-lg mb-1">Create Recipes</h3>
-                <p className="text-sm text-[var(--text-muted)] max-w-xs">
-                  Define ingredient constraints, outputs, and supply caps. Anchor program enforces rules.
+            <h2 className="text-2xl font-semibold mb-6 text-center">How It Works</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="neu-ghost p-6 rounded-xl border border-[rgba(255,255,255,0.06)] text-center">
+                <div className="text-4xl mb-3">🌿</div>
+                <h3 className="font-semibold text-lg mb-2">1. Connect Wallet</h3>
+                <p className="text-sm text-[var(--text-muted)]">
+                  Connect your Phantom wallet (set to Devnet). Make sure you have SOL for transaction fees. Get free devnet SOL from the faucet if needed.
                 </p>
               </div>
-              <div className="neu-ghost p-4 rounded-xl border border-[rgba(255,255,255,0.06)]">
-                <div className="text-3xl mb-2">🔥</div>
-                <h3 className="font-semibold text-lg mb-1">Meet Requirements</h3>
-                <p className="text-sm text-[var(--text-muted)] max-w-xs">
-                  Review recipe requirements. Some recipes have no requirements and can be forged immediately!
+              <div className="neu-ghost p-6 rounded-xl border border-[rgba(255,255,255,0.06)] text-center">
+                <div className="text-4xl mb-3">🔥</div>
+                <h3 className="font-semibold text-lg mb-2">2. Review Recipe</h3>
+                <p className="text-sm text-[var(--text-muted)]">
+                  Check the recipe requirements. The <span className="font-mono text-[var(--accent-secondary)]">iron-sword</span> recipe has no ingredient requirements—you can forge immediately!
                 </p>
               </div>
-              <div className="neu-ghost p-4 rounded-xl border border-[rgba(255,255,255,0.06)]">
-                <div className="text-3xl mb-2">🛠️</div>
-                <h3 className="font-semibold text-lg mb-1">Forge Assets</h3>
-                <p className="text-sm text-[var(--text-muted)] max-w-xs">
-                  Click "Forge Asset" to mint your NFT. Transaction fees apply (free SOL available on devnet via faucet).
+              <div className="neu-ghost p-6 rounded-xl border border-[rgba(255,255,255,0.06)] text-center">
+                <div className="text-4xl mb-3">🛠️</div>
+                <h3 className="font-semibold text-lg mb-2">3. Forge NFT</h3>
+                <p className="text-sm text-[var(--text-muted)]">
+                  Click "Forge Asset" to mint your NFT. Each wallet can forge multiple times—each mint creates a unique NFT!
                 </p>
               </div>
+            </div>
+            <div className="mt-8 text-center">
+              <Link
+                href="/mint/iron-sword"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-[#0b0f0b] font-semibold hover:bg-[var(--accent-secondary)] transition"
+              >
+                Try Forging Now →
+              </Link>
             </div>
           </div>
         </div>
