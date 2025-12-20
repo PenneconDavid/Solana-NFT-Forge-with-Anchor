@@ -68,7 +68,7 @@ export default function NewRecipePage() {
             maxLength={32}
             value={formData.slug}
             onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-[#0d120e] bg-white"
             placeholder="my-recipe"
           />
           <p className="text-xs text-gray-500 mt-1">Max 32 characters</p>
@@ -82,7 +82,7 @@ export default function NewRecipePage() {
             min="1"
             value={formData.version}
             onChange={(e) => setFormData({ ...formData, version: e.target.value })}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-[#0d120e] bg-white"
           />
         </div>
 
@@ -91,7 +91,7 @@ export default function NewRecipePage() {
           <select
             value={formData.outputKind}
             onChange={(e) => setFormData({ ...formData, outputKind: e.target.value })}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-[#0d120e] bg-white"
           >
             <option value="one-of-one">One of One (1/1 NFT)</option>
             <option value="edition">Edition</option>
@@ -106,7 +106,7 @@ export default function NewRecipePage() {
             min="1"
             value={formData.supplyCap}
             onChange={(e) => setFormData({ ...formData, supplyCap: e.target.value })}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-[#0d120e] bg-white"
             placeholder="Leave empty for unlimited"
           />
         </div>
@@ -118,7 +118,7 @@ export default function NewRecipePage() {
             required
             value={formData.metadataUri}
             onChange={(e) => setFormData({ ...formData, metadataUri: e.target.value })}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-[#0d120e] bg-white"
             placeholder="https://ipfs.io/ipfs/..."
           />
         </div>
@@ -129,7 +129,7 @@ export default function NewRecipePage() {
             type="text"
             value={formData.collectionMint}
             onChange={(e) => setFormData({ ...formData, collectionMint: e.target.value })}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-[#0d120e] bg-white"
             placeholder="Optional collection pubkey"
           />
         </div>
@@ -145,7 +145,7 @@ export default function NewRecipePage() {
                 : "";
               setFormData({ ...formData, goLive: timestamp.toString() });
             }}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-[#0d120e] bg-white"
           />
         </div>
 

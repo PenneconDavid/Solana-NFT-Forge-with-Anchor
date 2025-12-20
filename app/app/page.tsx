@@ -35,6 +35,9 @@ export default function HomePage() {
             <p className="text-lg text-[var(--text-muted)] max-w-3xl mx-auto">
               Connect your Phantom wallet and forge NFTs using recipe-based ingredients. No setup required—works out of the box with the deployed devnet forge.
             </p>
+            <p className="text-sm text-[var(--text-muted)] max-w-2xl mx-auto mt-2 opacity-75">
+              ⚠️ <strong>Note:</strong> This project is for demonstration purposes only. Forged assets are on-chain NFTs but do not include visual artwork at this time.
+            </p>
             <div className="flex flex-wrap justify-center gap-4 items-center">
               <WalletMultiButton className="!bg-[var(--accent-primary)] !text-[#0b0f0b] !font-semibold !px-5 !py-3 !rounded-xl btn-glow" />
               {connected && (
@@ -133,7 +136,7 @@ export default function HomePage() {
             <div className="mt-8 text-center">
               <Link
                 href="/mint/iron-sword"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-[#0b0f0b] font-semibold hover:bg-[var(--accent-secondary)] transition"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:bg-[var(--accent-secondary)] transition"
               >
                 Try Forging Now →
               </Link>
