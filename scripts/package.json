@@ -15,14 +15,15 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
-    "@metaplex-foundation/umi": "^1.4.1",
-    "@noble/hashes": "^2.0.1",
+    "@metaplex-foundation/umi": "^1.5.1",
+    "@noble/hashes": "^2.2.0",
     "@solana/web3.js": "^1.98.4",
     "commander": "^12.1.0",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.4.2",
+    "solana-nft-forge-with-anchor": "file:.."
   },
   "devDependencies": {
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.13.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
