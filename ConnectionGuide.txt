@@ -33,6 +33,9 @@ Vercel Deployment
 - Env (public): NEXT_PUBLIC_FORGE_AUTHORITY=Fx2ydi5tp6Zu2ywMJEZopCXUqhChehKWBnKNgQjcJnSA (optional - defaults in code if not set)
 - Note: Do NOT set NEXT_PUBLIC_FORGE_AUTHORITY in Vercel if it's truncated. The code will use the correct default.
 
+GitHub Actions
+- CI workflow `.github/workflows/ci.yml` is removed/disabled (never stayed green). Vercel still deploys the frontend from Git.
+
 IDL Locations
 - Generated IDL: target/idl/forge.json
 - Scripts IDL: scripts/idl/forge.json
